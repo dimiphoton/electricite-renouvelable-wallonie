@@ -1,9 +1,21 @@
 # Roadmap
 
-À définir avec l'utilisateur au lancement du projet : domaine (ML / BI /
-géospatial / data engineering) et objectif final (webapp, statique, Kaggle,
-dashboard...).
+**Domaine** : mix data engineering + BI (séries temporelles, SQL
+dimensionnel, dashboard). Pas de machine learning ni de SIG dans le
+cœur du projet.
 
-- [ ] Étape 1 — à définir
-- [ ] Étape 2 — à définir
-- [ ] Étape 3 — à définir
+**Objectif final** : pipeline reproductible (API → DuckDB → analyse) et
+dashboard Streamlit avec une recommandation métier chiffrée. Power BI
+en option, après le livrable Streamlit.
+
+Périmètre validé : **couverture Belgique** (production renouvelable /
+charge) + **zoom production Wallonie** vs météo. Période : **3 ans**.
+
+- [ ] Étape 1 — Socle du repo (package, config, structure `data/` / `sql/`)
+- [ ] Étape 2 — Ingestion Elia (charge, solaire, éolien historiques)
+- [ ] Étape 3 — Ingestion Copernicus ERA5 (rayonnement, vent, agrégés zone)
+- [ ] Étape 4 — Nettoyage des séries + schéma DuckDB (faits / dimensions)
+- [ ] Étape 5 — Analyse des 4 questions métier (SQL + stats)
+- [ ] Étape 6 — Dashboard Streamlit
+- [ ] Étape 7 — README, recommandation, présentations portfolio
+- [ ] Étape 8 *(optionnel)* — Power BI et/ou indicateur de risque réseau

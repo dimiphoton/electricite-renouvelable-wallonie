@@ -1,0 +1,41 @@
+# Paramètres du projet — rien d'opérationnel n'est codé en dur ailleurs.
+# Période : 36 mois glissants (bornes inclusives, calendrier civil).
+
+[period]
+start = "2023-09-01"
+end = "2026-08-31"
+
+[elia]
+base_url = "https://opendata.elia.be/api/explore/v2.1"
+# Archives historiques (pas les jeux near real-time ods002 / ods086 / ods087).
+load_dataset = "ods001"
+solar_dataset = "ods032"
+wind_dataset = "ods031"
+# Taux de couverture : charge nationale uniquement.
+coverage_region = "Belgium"
+# Zoom production + météo.
+zoom_region = "Wallonia"
+
+[elia.regions]
+# Valeurs du champ `region` dans les exports Elia.
+solar = ["Belgium", "Wallonia"]
+wind = ["Federal", "Flanders", "Wallonia"]
+
+[copernicus]
+dataset = "reanalysis-era5-single-levels"
+variables = [
+    "surface_solar_radiation_downwards",
+    "10m_u_component_of_wind",
+    "10m_v_component_of_wind",
+]
+# Bbox CDS : nord, ouest, sud, est (degrés). Moyenne spatiale ensuite, pas de SIG.
+belgium_bbox = [51.55, 2.5, 49.45, 6.45]
+wallonia_bbox = [50.82, 2.84, 49.45, 6.45]
+
+[paths]
+raw_dir = "data/raw"
+processed_dir = "data/processed"
+warehouse = "data/processed/warehouse.duckdb"
+
+[display]
+timezone = "Europe/Brussels"
