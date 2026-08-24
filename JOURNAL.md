@@ -1,5 +1,11 @@
 # Journal de développement
 
+## 2026-08-24 — Merge dans main
+
+- `feature/readme-presentations` mergée dans `main` sans `.cursor/`.
+- Pipeline, dashboard Streamlit, reco, README et présentations sont
+  sur la branche publique.
+
 ## 2026-08-24 — Polish Streamlit
 
 - `webapp/app.py` : question décideur en titre, trois cartes de cadrage
