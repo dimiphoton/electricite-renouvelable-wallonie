@@ -8,6 +8,7 @@ moyenne pondérée par ``cos(latitude)``.
 from __future__ import annotations
 
 import logging
+import tempfile
 import zipfile
 from dataclasses import dataclass
 from datetime import date
@@ -203,7 +204,9 @@ def ingest_copernicus(
     downloads: list[MonthDownload] = []
     for year, month in months_in_period(settings.period.start, settings.period.end):
         dest = dest_dir / monthly_nc_name(year, month)
-        if dest.is_file() and dest.stat().st_size > 0 and not force:
+        # Un fichier incomplet (zip CDS dont on n'avait gardé qu'un NetCDF) doit
+        # être retéléchargé, même sans --force.
+        if not force and _month_is_complete(dest):
             logger.info("deja present, ignore : %s", dest.name)
             downloads.append(MonthDownload(path=dest, year=year, month=month, skipped=True))
             continue
@@ -291,17 +294,46 @@ def _download_month(
         tmp.unlink(missing_ok=True)
 
 
+def _month_is_complete(path: Path) -> bool:
+    """True si le NetCDF contient vent (u, v) et rayonnement."""
+    if not path.is_file() or path.stat().st_size == 0:
+        return False
+    try:
+        with xr.open_dataset(path) as dataset:
+            has_u = any(name in dataset.data_vars for name in _U_NAMES)
+            has_v = any(name in dataset.data_vars for name in _V_NAMES)
+            has_ssrd = any(name in dataset.data_vars for name in _SSRD_NAMES)
+    except OSError:
+        return False
+    return has_u and has_v and has_ssrd
+
+
 def _materialize_netcdf(tmp: Path, dest: Path) -> None:
     if not tmp.is_file() or tmp.stat().st_size == 0:
         raise CopernicusIngestError(f"fichier CDS vide : {tmp}")
     if zipfile.is_zipfile(tmp):
-        with zipfile.ZipFile(tmp) as archive:
-            names = [name for name in archive.namelist() if name.lower().endswith(".nc")]
-            if not names:
-                raise CopernicusIngestError("archive CDS sans NetCDF")
-            dest.write_bytes(archive.read(names[0]))
-            return
+        _merge_zip_netcdf(tmp, dest)
+        return
     tmp.replace(dest)
+
+
+def _merge_zip_netcdf(archive_path: Path, dest: Path) -> None:
+    """Fusionne tous les ``.nc`` d'une archive CDS (un fichier par variable)."""
+    with zipfile.ZipFile(archive_path) as archive:
+        names = [name for name in archive.namelist() if name.lower().endswith(".nc")]
+        if not names:
+            raise CopernicusIngestError("archive CDS sans NetCDF")
+        logger.info("archive CDS : %s NetCDF a fusionner", len(names))
+        with tempfile.TemporaryDirectory() as tmpdir:
+            archive.extractall(tmpdir)
+            nc_paths = sorted(Path(tmpdir).rglob("*.nc"))
+            datasets = [xr.open_dataset(path).load() for path in nc_paths]
+            try:
+                merged = xr.merge(datasets, compat="override", combine_attrs="override")
+                merged.to_netcdf(dest)
+            finally:
+                for dataset in datasets:
+                    dataset.close()
 
 
 def _aggregate_months(
