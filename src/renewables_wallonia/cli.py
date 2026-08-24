@@ -7,7 +7,9 @@ import logging
 import sys
 from pathlib import Path
 
-from renewables_wallonia.config import ConfigError, load_settings
+from renewables_wallonia.config import ConfigError, load_settings, project_root
+from renewables_wallonia.data.copernicus import CopernicusIngestError, ingest_copernicus
+from renewables_wallonia.data.elia import EliaIngestError, ingest_elia
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +56,24 @@ def build_parser() -> argparse.ArgumentParser:
         "show-config",
         help="Affiche la configuration chargée (contrôle du socle).",
     )
+    ingest = subparsers.add_parser(
+        "ingest-elia",
+        help="Telecharge les archives Elia (charge, solaire, eolien) vers data/raw/elia/.",
+    )
+    ingest.add_argument(
+        "--force",
+        action="store_true",
+        help="Retelecharge meme si le fichier CSV existe deja.",
+    )
+    copernicus = subparsers.add_parser(
+        "ingest-copernicus",
+        help="Telecharge ERA5 (Copernicus) et ecrit la serie horaire agregee.",
+    )
+    copernicus.add_argument(
+        "--force",
+        action="store_true",
+        help="Retelecharge meme si les NetCDF mensuels existent deja.",
+    )
     return parser
 
 
@@ -67,6 +87,24 @@ def _run_show_config(config_path: Path | None) -> int:
     print(f"meteo       : {settings.copernicus.dataset}")
     print(f"entrepot    : {settings.paths.warehouse}")
     print(f"affichage   : {settings.display.timezone}")
+    return 0
+
+
+def _run_ingest_elia(config_path: Path | None, force: bool) -> int:
+    settings = load_settings(config_path)
+    results = ingest_elia(settings, project_root(), force=force)
+    for result in results:
+        etat = "deja present" if result.skipped else f"ok ({result.bytes_written} octets)"
+        print(f"{result.path.name}  {etat}")
+    return 0
+
+
+def _run_ingest_copernicus(config_path: Path | None, force: bool) -> int:
+    settings = load_settings(config_path)
+    months, csv_path = ingest_copernicus(settings, project_root(), force=force)
+    sautes = sum(1 for item in months if item.skipped)
+    print(f"mois ERA5     : {len(months)} ({sautes} ignores)")
+    print(f"serie horaire : {csv_path}")
     return 0
 
 
@@ -91,9 +129,16 @@ def main(argv: list[str] | None = None) -> None:
     try:
         if args.command == "show-config":
             raise SystemExit(_run_show_config(args.config))
+        if args.command == "ingest-elia":
+            raise SystemExit(_run_ingest_elia(args.config, args.force))
+        if args.command == "ingest-copernicus":
+            raise SystemExit(_run_ingest_copernicus(args.config, args.force))
     except ConfigError as exc:
         logger.error("%s", exc)
         raise SystemExit(2) from exc
+    except (EliaIngestError, CopernicusIngestError) as exc:
+        logger.error("%s", exc)
+        raise SystemExit(1) from exc
 
     parser.error(f"commande inconnue : {args.command}")
 

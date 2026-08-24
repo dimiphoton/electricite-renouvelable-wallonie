@@ -15,13 +15,14 @@ Elia publishes load at **Belgium** level only. Coverage (generation / load) is t
 ## Data
 
 - **Elia Open Data** (no API key): historical 15-minute series — total load (`ods001`), solar (`ods032`), wind (`ods031`). Period: Sep 2023 – Aug 2026 (36 months, editable in `config/settings.toml`).
-- **Copernicus ERA5** (CDS account required later): solar radiation and wind, spatially averaged over Belgium / Wallonia — no GIS.
+- **Copernicus ERA5** (CDS account + `~/.cdsapirc`): solar radiation and 10 m wind, spatially averaged over Belgium / Wallonia — no GIS.
 
-The ingestion pipeline is not implemented yet (roadmap steps 2–3).
+Elia: `python -m renewables_wallonia.cli ingest-elia`
+Copernicus: `python -m renewables_wallonia.cli ingest-copernicus` (queued; one NetCDF per month, resumable).
 
 ## Result
 
-Not yet. Step 1 only sets the project skeleton (package, config, CLI).
+Not yet. Ingestion is in place (Elia + Copernicus); analysis comes next.
 
 ## Reproduce
 
@@ -29,8 +30,12 @@ Not yet. Step 1 only sets the project skeleton (package, config, CLI).
 pip install -e ".[dev]"
 python -m renewables_wallonia.cli --help
 python -m renewables_wallonia.cli show-config
+python -m renewables_wallonia.cli ingest-elia
+python -m renewables_wallonia.cli ingest-copernicus
 pytest
 ```
+
+`ingest-elia` and `ingest-copernicus` write into `data/` (gitignored). Re-run with `--force` to replace files. Copernicus needs a CDS token in `%USERPROFILE%\.cdsapirc` and can sit in a queue for several minutes per month.
 
 ## Repo structure
 
