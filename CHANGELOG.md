@@ -2,6 +2,10 @@
 
 ## [Non publié]
 
+- Dashboard Streamlit (`webapp/app.py`, CLI `dashboard`) : une
+  visualisation par question métier et une recommandation chiffrée
+  (flex hivernal 16–19 h vs PV d'été). Plotly, lecture des CSV
+  d'`analyze`.
 - Analyse métier (`analyze`) : 4 questions SQL (couverture saison/heure,
   pics d'été, météo wallonne, complémentarité), synthèse dans
   `docs/analyse.md`.

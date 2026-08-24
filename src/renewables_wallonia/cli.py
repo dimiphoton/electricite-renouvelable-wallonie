@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import subprocess
 import sys
 from pathlib import Path
 
@@ -85,6 +86,10 @@ def build_parser() -> argparse.ArgumentParser:
         "analyze",
         help="Repond aux 4 questions metier (SQL) et ecrit les tables CSV.",
     )
+    subparsers.add_parser(
+        "dashboard",
+        help="Lance le dashboard Streamlit (une viz par question metier).",
+    )
     return parser
 
 
@@ -126,6 +131,41 @@ def _run_build_warehouse(config_path: Path | None) -> int:
     return 0
 
 
+def _run_dashboard(config_path: Path | None) -> int:
+    """Lance Streamlit sur ``webapp/app.py``.
+
+    Parameters
+    ----------
+    config_path
+        Ignoré pour l'instant (l'app lit ``config/settings.toml``).
+
+    Returns
+    -------
+    int
+        Code retour du processus Streamlit.
+    """
+
+    _ = load_settings(config_path)
+    app = project_root() / "webapp" / "app.py"
+    if not app.is_file():
+        logger.error("app Streamlit introuvable : %s", app)
+        return 1
+    try:
+        import streamlit  # noqa: F401
+    except ImportError:
+        logger.error("Streamlit n'est pas installé. Relance pip install -e .")
+        return 1
+    cmd = [
+        sys.executable,
+        "-m",
+        "streamlit",
+        "run",
+        str(app),
+        "--browser.gatherUsageStats=false",
+    ]
+    return int(subprocess.call(cmd))
+
+
 def _run_analyze(config_path: Path | None) -> int:
     settings = load_settings(config_path)
     root = project_root()
@@ -164,6 +204,8 @@ def main(argv: list[str] | None = None) -> None:
             raise SystemExit(_run_build_warehouse(args.config))
         if args.command == "analyze":
             raise SystemExit(_run_analyze(args.config))
+        if args.command == "dashboard":
+            raise SystemExit(_run_dashboard(args.config))
     except ConfigError as exc:
         logger.error("%s", exc)
         raise SystemExit(2) from exc

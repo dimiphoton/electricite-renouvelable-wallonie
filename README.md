@@ -21,10 +21,13 @@ Elia: `python -m renewables_wallonia.cli ingest-elia`
 Copernicus: `python -m renewables_wallonia.cli ingest-copernicus` (queued; one NetCDF per month, resumable).
 Warehouse: `python -m renewables_wallonia.cli build-warehouse` (DuckDB star schema in `data/processed/warehouse.duckdb`).
 Analysis: `python -m renewables_wallonia.cli analyze` (four SQL questions → `data/processed/analysis/`). Write-up: [`docs/analyse.md`](docs/analyse.md).
+Dashboard: `python -m renewables_wallonia.cli dashboard` (Streamlit).
 
 ## Result
 
-On Sep 2023 – Aug 2026, solar + wind cover **27%** of Belgian load on average (median 24%). A summer midday hour reaches **~63%**; a winter evening hour **~19%**. Summer load peaks around noon and solar follows them; the tight hours are winter late afternoons (coverage ~1% on 0.7% of quarter-hours). Walloon PV and wind track ERA5 radiation and 10 m wind closely (r ≈ 0.92 and 0.88). The Streamlit dashboard is next.
+On Sep 2023 – Aug 2026, solar + wind cover **27%** of Belgian load on average (median 24%). A summer midday hour reaches **~63%**; a winter evening hour **~19%**. Summer load peaks around noon and solar follows them; the tight hours are winter late afternoons (coverage ~1% on 0.7% of quarter-hours). Walloon PV and wind track ERA5 radiation and 10 m wind closely (r ≈ 0.92 and 0.88).
+
+**Recommendation (dashboard):** put flexibility (demand, storage, imports) on the **winter 16–19 h** slot rather than extra PV for summer peaks. Streamlit: `python -m renewables_wallonia.cli dashboard`.
 
 Write-up (French): [`docs/analyse.md`](docs/analyse.md).
 
@@ -38,6 +41,7 @@ python -m renewables_wallonia.cli ingest-elia
 python -m renewables_wallonia.cli ingest-copernicus
 python -m renewables_wallonia.cli build-warehouse
 python -m renewables_wallonia.cli analyze
+python -m renewables_wallonia.cli dashboard
 pytest
 ```
 
@@ -51,7 +55,8 @@ data/raw/                # untouched API extracts (gitignored)
 data/processed/          # era5_hourly.csv, warehouse.duckdb, analysis/ (gitignored)
 sql/schema.sql           # DuckDB star schema + v_belgium_qh
 sql/analysis/            # named SQL for the four business questions
-src/renewables_wallonia/ # package (CLI + config + analysis)
+src/renewables_wallonia/ # package (CLI + config + analysis + dashboard)
+webapp/app.py            # Streamlit dashboard
 tests/
 ```
 

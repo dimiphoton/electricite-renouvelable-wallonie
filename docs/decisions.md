@@ -11,3 +11,4 @@
 | 2026-08-24 | Pic d'été = P90 de la charge estivale ; stress = P90 charge **et** P10 renouvelable | Top 5 % / moyenne + 2 σ | Des quantiles lisibles, réglables dans `[analysis]`, sans hypothèse gaussienne. |
 | 2026-08-24 | Corrélation solaire « de jour » si `ssrd > 10 W/m²` | Toutes les heures | Les nuits à zéro gonfleraient r sans rien dire du gisement. |
 | 2026-08-24 | Saisonnalité par `GROUP BY` + moyenne mobile 7 jours | Décomposition STL (`statsmodels`) | Suffit pour les 4 questions ; évite une dépendance de plus avant le dashboard. |
+| 2026-08-24 | Charts **Plotly** dans Streamlit | Altair (déjà fourni par Streamlit) | Heatmap heure × saison et densités PV/ERA5 plus lisibles ; hover utile pour un dashboard métier. |

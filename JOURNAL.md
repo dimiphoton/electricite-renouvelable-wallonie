@@ -1,5 +1,13 @@
 # Journal de développement
 
+## 2026-08-24 — Dashboard Streamlit
+
+- App `webapp/app.py` : une visualisation par question métier, plus
+  une recommandation chiffrée (prioriser le flex 16–19 h l'hiver plutôt
+  que du PV pour les pics d'été). CLI `dashboard`. Charts Plotly.
+- Logique testée dans `src/renewables_wallonia/dashboard.py` (CSV
+  d'analyse, repli DuckDB).
+
 ## 2026-08-24 — Analyse des 4 questions métier
 
 - CLI `analyze` : SQL dans `sql/analysis/`, CSV dans

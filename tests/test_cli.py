@@ -17,6 +17,7 @@ def test_help_affiche_la_sous_commande(capsys: pytest.CaptureFixture[str]) -> No
     assert "ingest-copernicus" in sortie
     assert "build-warehouse" in sortie
     assert "analyze" in sortie
+    assert "dashboard" in sortie
     assert "Belgique" in sortie
 
 
@@ -77,3 +78,22 @@ def test_ingest_copernicus_cli(monkeypatch: pytest.MonkeyPatch, capsys: pytest.C
     sortie = capsys.readouterr().out
     assert "ERA5" in sortie
     assert "era5_hourly.csv" in sortie
+
+
+def test_dashboard_cli_lance_streamlit(monkeypatch: pytest.MonkeyPatch) -> None:
+    """``dashboard`` délègue à ``python -m streamlit run webapp/app.py``."""
+
+    captured: list[list[str]] = []
+
+    def fake_call(cmd: list[str]) -> int:
+        captured.append(list(cmd))
+        return 0
+
+    monkeypatch.setattr("renewables_wallonia.cli.subprocess.call", fake_call)
+    with pytest.raises(SystemExit) as excinfo:
+        main(["dashboard"])
+    assert excinfo.value.code == 0
+    assert captured
+    command = captured[0]
+    assert "streamlit" in command
+    assert any(str(part).endswith("app.py") for part in command)
