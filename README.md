@@ -20,10 +20,13 @@ Elia publishes load at **Belgium** level only. Coverage (generation / load) is t
 Elia: `python -m renewables_wallonia.cli ingest-elia`
 Copernicus: `python -m renewables_wallonia.cli ingest-copernicus` (queued; one NetCDF per month, resumable).
 Warehouse: `python -m renewables_wallonia.cli build-warehouse` (DuckDB star schema in `data/processed/warehouse.duckdb`).
+Analysis: `python -m renewables_wallonia.cli analyze` (four SQL questions → `data/processed/analysis/`). Write-up: [`docs/analyse.md`](docs/analyse.md).
 
 ## Result
 
-A DuckDB warehouse is in place (`build-warehouse`): 15-minute load and generation, hourly weather, plus a Belgium coverage view. The four business questions (dashboard) are next.
+On Sep 2023 – Aug 2026, solar + wind cover **27%** of Belgian load on average (median 24%). A summer midday hour reaches **~63%**; a winter evening hour **~19%**. Summer load peaks around noon and solar follows them; the tight hours are winter late afternoons (coverage ~1% on 0.7% of quarter-hours). Walloon PV and wind track ERA5 radiation and 10 m wind closely (r ≈ 0.92 and 0.88). The Streamlit dashboard is next.
+
+Write-up (French): [`docs/analyse.md`](docs/analyse.md).
 
 ## Reproduce
 
@@ -34,6 +37,7 @@ python -m renewables_wallonia.cli show-config
 python -m renewables_wallonia.cli ingest-elia
 python -m renewables_wallonia.cli ingest-copernicus
 python -m renewables_wallonia.cli build-warehouse
+python -m renewables_wallonia.cli analyze
 pytest
 ```
 
@@ -44,9 +48,10 @@ pytest
 ```
 config/settings.toml     # period, Elia datasets, ERA5 bbox — nothing hardcoded
 data/raw/                # untouched API extracts (gitignored)
-data/processed/          # era5_hourly.csv + warehouse.duckdb (gitignored)
+data/processed/          # era5_hourly.csv, warehouse.duckdb, analysis/ (gitignored)
 sql/schema.sql           # DuckDB star schema + v_belgium_qh
-src/renewables_wallonia/ # package (CLI + config loader)
+sql/analysis/            # named SQL for the four business questions
+src/renewables_wallonia/ # package (CLI + config + analysis)
 tests/
 ```
 

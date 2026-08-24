@@ -36,6 +36,19 @@ wallonia_bbox = [50.82, 2.84, 49.45, 6.45]
 raw_dir = "data/raw"
 processed_dir = "data/processed"
 warehouse = "data/processed/warehouse.duckdb"
+analysis_dir = "data/processed/analysis"
 
 [display]
 timezone = "Europe/Brussels"
+
+# Seuils des 4 questions métier (SQL dans sql/analysis/).
+[analysis]
+# Pic de charge = quantile de load_mw (0.9 = 10 % des quarts d'heure les plus chargés).
+peak_load_quantile = 0.9
+# Rayonnement min (W/m²) pour la corrélation solaire « de jour » (les nuits à 0 gonfleraient r).
+daytime_ssrd_w_m2 = 10.0
+# Stress : charge haute et renouvelable bas (quantiles).
+stress_load_quantile = 0.9
+stress_renewable_quantile = 0.1
+coverage_mid_threshold = 0.5
+coverage_high_threshold = 1.0

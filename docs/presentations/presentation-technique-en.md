@@ -11,7 +11,7 @@ paginate: true
 ![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white)
 ![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white)
 
-*Steps 1–4: ingest, clean, DuckDB*
+*Steps 1–5: ingest, DuckDB, four SQL questions*
 
 ---
 
@@ -27,11 +27,11 @@ No ML, no GIS.
 
 ## Approach and methodology
 
-Pipeline: APIs → immutable raw files → DuckDB (star schema) → window SQL → Streamlit dashboard.
+Pipeline: APIs → immutable raw files → DuckDB (star schema) → window SQL (`PERCENT_RANK`, 7-day moving average) → Streamlit dashboard.
 
-Period: 36 months (`config/settings.toml`). Timestamps stored in UTC, displayed in `Europe/Brussels`.
+Period: 36 months. Summer peak = P90 of summer load. Stress = P90 load **and** P10 renewable. Daytime solar correlation if `ssrd > 10 W/m²`.
 
-Assumption: never sum the Belgium grain with the Wallonia grain (Belgian solar already includes Wallonia).
+Assumption: never sum the Belgium grain with the Wallonia grain.
 
 ---
 
@@ -39,36 +39,39 @@ Assumption: never sum the Belgium grain with the Wallonia grain (Belgian solar a
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white) portfolio language, `tomllib` in the stdlib
 
-![DuckDB](https://img.shields.io/badge/DuckDB-analytics-yellow?logo=duckdb&logoColor=white) analytical SQL, one file, no server (vs SQLite too limited / PostgreSQL pointless without GIS)
+![DuckDB](https://img.shields.io/badge/DuckDB-analytics-yellow?logo=duckdb&logoColor=white) analytical SQL (`CORR`, windows), one file, no server
 
-![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white) reproducible in-repo dashboard (Power BI optional later)
+![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white) dashboard next (Power BI optional later)
 
 ![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white) time-series cleaning (Elia 15-min, ERA5 hourly)
 
 ---
 
-## Metrics and rationale
+## Results (Sep 2023 – Aug 2026)
 
-SQL view `v_belgium_qh`: **coverage ratio** = (PV + wind) / load, NULL if any series is missing.
+Mean coverage **27.4%** (summer 14:00: **62.9%**; winter 18:00: **18.8%**).
 
-Sanity check (not the business analysis yet): mean ~27%, max ~108% (renewables can exceed load in some quarter-hours).
+Summer peaks: solar ×3.2 vs off-peak, r(PV, load) = **0.64**. Daily load max ~12:00, solar ~13:00.
 
-Still to compute: Walloon weather correlations, solar/wind complementarity by season.
+Wallonia: r(PV, ssrd) = **0.92** (daytime 0.87); r(wind, 10 m speed) = **0.88**.
+
+PV/wind complementarity r = **−0.21**. Stress (P90×P10): **0.7%** of quarter-hours, 1.3% coverage, mostly winter — **0%** in summer.
 
 ---
 
-## Limitations (already known)
+## Limitations
 
 - National load only: no “Wallonia covers its own demand”
 - Elia generation is *measured & upscaled*, not validated metering
 - Offshore wind: Elia-documented gaps in 2018–2023
-- ERA5 is reanalysis, not ground stations
+- ERA5 is reanalysis (ends ~19 Aug 2026); 10 m wind, not hub height
+- Peak/stress quantiles are conventions, not Elia grid thresholds
 
 ---
 
 ## Code
 
+- [`sql/analysis/`](../../sql/analysis/) — four named questions
+- [`src/renewables_wallonia/analysis.py`](../../src/renewables_wallonia/analysis.py) — `analyze`
+- [`docs/analyse.md`](../analyse.md) — findings (French)
 - [`sql/schema.sql`](../../sql/schema.sql) — star schema + `v_belgium_qh`
-- [`src/renewables_wallonia/data/clean.py`](../../src/renewables_wallonia/data/clean.py) — cleaning
-- [`src/renewables_wallonia/data/warehouse.py`](../../src/renewables_wallonia/data/warehouse.py) — `build-warehouse`
-- [`src/renewables_wallonia/cli.py`](../../src/renewables_wallonia/cli.py) — ingest + warehouse

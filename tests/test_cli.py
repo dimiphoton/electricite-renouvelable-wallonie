@@ -16,6 +16,7 @@ def test_help_affiche_la_sous_commande(capsys: pytest.CaptureFixture[str]) -> No
     assert "ingest-elia" in sortie
     assert "ingest-copernicus" in sortie
     assert "build-warehouse" in sortie
+    assert "analyze" in sortie
     assert "Belgique" in sortie
 
 

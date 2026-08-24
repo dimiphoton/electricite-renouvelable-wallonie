@@ -11,7 +11,7 @@ paginate: true
 ![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white)
 ![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white)
 
-*Étapes 1–4 : ingestion, nettoyage, DuckDB*
+*Étapes 1–5 : ingestion, DuckDB, 4 questions SQL*
 
 ---
 
@@ -27,11 +27,11 @@ Pas de ML, pas de SIG.
 
 ## Approche et méthodologie
 
-Pipeline : API → fichiers bruts intouchables → DuckDB (étoile) → SQL à fenêtres → dashboard Streamlit.
+Pipeline : API → fichiers bruts intouchables → DuckDB (étoile) → SQL à fenêtres (`PERCENT_RANK`, moyenne mobile 7 jours) → dashboard Streamlit.
 
-Période : 36 mois (`config/settings.toml`). Timestamps stockés en UTC, affichés en `Europe/Brussels`.
+Période : 36 mois. Pic d'été = P90 de la charge estivale. Stress = P90 charge **et** P10 renouvelable. Corrélation solaire « de jour » si `ssrd > 10 W/m²`.
 
-Hypothèse : on ne somme jamais la maille Belgique et la maille Wallonie (le solaire belge inclut déjà la Wallonie).
+Hypothèse : on ne somme jamais la maille Belgique et la maille Wallonie.
 
 ---
 
@@ -39,36 +39,39 @@ Hypothèse : on ne somme jamais la maille Belgique et la maille Wallonie (le sol
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white) langage du portfolio, `tomllib` en stdlib
 
-![DuckDB](https://img.shields.io/badge/DuckDB-analytics-yellow?logo=duckdb&logoColor=white) SQL analytique, un fichier, pas de serveur (vs SQLite trop limité / PostgreSQL inutile sans SIG)
+![DuckDB](https://img.shields.io/badge/DuckDB-analytics-yellow?logo=duckdb&logoColor=white) SQL analytique (`CORR`, fenêtres), un fichier, pas de serveur
 
-![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white) dashboard reproductible dans le repo (Power BI possible plus tard)
+![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white) dashboard à venir (Power BI possible plus tard)
 
 ![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white) nettoyage des séries (quart d'heure Elia, heure ERA5)
 
 ---
 
-## Métriques et justification
+## Résultats (sept. 2023 – août 2026)
 
-Vue SQL `v_belgium_qh` : **taux de couverture** = (PV + éolien) / charge, NA si une série manque.
+Couverture moyenne **27,4 %** (midi d'été 14 h : **62,9 %** ; soir d'hiver 18 h : **18,8 %**).
 
-Contrôle de sanity (pas encore l'analyse métier) : moyenne ~27 %, max ~108 % (le renouvelable peut dépasser la charge à certains quarts d'heure).
+Pics d'été : solaire ×3,2 vs hors pic, r(PV, charge) = **0,64**. Max journalier de charge ~12 h, solaire ~13 h.
 
-Reste à calculer : corrélation météo wallonne, complémentarité solaire/éolien par saison.
+Wallonie : r(PV, ssrd) = **0,92** (jour 0,87) ; r(éolien, vent 10 m) = **0,88**.
+
+Complémentarité PV/éolien r = **−0,21**. Stress (P90×P10) : **0,7 %** des QH, couverture 1,3 %, surtout hiver — **0 %** en été.
 
 ---
 
-## Limites (déjà identifiées)
+## Limites
 
 - Charge nationale seulement : pas de « la Wallonie couvre sa demande »
 - Production Elia = *measured & upscaled*, pas du comptage validé
 - Éolien offshore : écarts documentés par Elia sur 2018–2023
-- ERA5 = réanalyse, pas des stations au sol
+- ERA5 = réanalyse (arrêt ~19 août 2026), vent à 10 m pas à hauteur de moyeu
+- Quantiles de pic/stress = conventions, pas des seuils réseau Elia
 
 ---
 
 ## Code
 
+- [`sql/analysis/`](../../sql/analysis/) — 4 questions nommées
+- [`src/renewables_wallonia/analysis.py`](../../src/renewables_wallonia/analysis.py) — `analyze`
+- [`docs/analyse.md`](../analyse.md) — findings
 - [`sql/schema.sql`](../../sql/schema.sql) — étoile + `v_belgium_qh`
-- [`src/renewables_wallonia/data/clean.py`](../../src/renewables_wallonia/data/clean.py) — nettoyage
-- [`src/renewables_wallonia/data/warehouse.py`](../../src/renewables_wallonia/data/warehouse.py) — `build-warehouse`
-- [`src/renewables_wallonia/cli.py`](../../src/renewables_wallonia/cli.py) — ingest + entrepôt

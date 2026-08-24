@@ -12,7 +12,7 @@ paginate: true
 ![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white)
 ![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white)
 
-*Portfolio — steps 1–4: data in DuckDB*
+*Portfolio — steps 1–5: the numbers are in*
 
 ---
 
@@ -34,6 +34,8 @@ Load is published for **Belgium as a whole**. Wallonia is the production zoom, n
 
 ## The result
 
-Data sits in a query-ready DuckDB warehouse: load, solar, wind, weather.
+Over 3 years, solar + wind cover **27%** of Belgian load on average.
 
-The dashboard and numbered recommendation come next. A first order of magnitude: over the period, solar + wind cover on average **about 27%** of Belgian load (to be qualified in the analysis).
+A summer midday hour: about **63%**. A winter evening hour: about **19%**. Solar already tracks summer noon peaks. The tight hours are winter late afternoons.
+
+The Streamlit dashboard comes next.

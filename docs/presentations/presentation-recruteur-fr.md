@@ -12,7 +12,7 @@ paginate: true
 ![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white)
 ![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white)
 
-*Portfolio — étapes 1 à 4 : données dans DuckDB*
+*Portfolio — étapes 1 à 5 : les chiffres sont là*
 
 ---
 
@@ -34,6 +34,8 @@ La consommation n'est publiée que pour **toute la Belgique**. La Wallonie est l
 
 ## Le résultat
 
-Les données sont dans une base prête à interroger (DuckDB) : consommation, solaire, éolien, météo.
+Sur 3 ans, solaire + éolien couvrent en moyenne **27 %** de la consommation belge.
 
-Le tableau de bord et la recommandation chiffrée viennent ensuite. Un premier ordre de grandeur : sur la période, solaire + éolien couvrent en moyenne **environ 27 %** de la consommation belge (à nuancer à l'analyse).
+Un midi d'été : environ **63 %**. Un soir d'hiver : environ **19 %**. Le solaire suit déjà les pics de midi en été. Les moments tendus sont les fins d'après-midi d'hiver.
+
+Le tableau de bord (Streamlit) vient ensuite.

@@ -1,5 +1,8 @@
 # Roadmap
 
+Pour avancer : nouveau chat Agent, puis uniquement `prochaine étape`
+(relais : `docs/prochaine-discussion.md`).
+
 **Domaine** : mix data engineering + BI (séries temporelles, SQL
 dimensionnel, dashboard). Pas de machine learning ni de SIG dans le
 cœur du projet.
@@ -15,7 +18,7 @@ charge) + **zoom production Wallonie** vs météo. Période : **3 ans**.
 - [x] Étape 2 — Ingestion Elia (charge, solaire, éolien historiques)
 - [x] Étape 3 — Ingestion Copernicus ERA5 (rayonnement, vent, agrégés zone)
 - [x] Étape 4 — Nettoyage des séries + schéma DuckDB (faits / dimensions)
-- [ ] Étape 5 — Analyse des 4 questions métier (SQL + stats)
+- [x] Étape 5 — Analyse des 4 questions métier (SQL + stats)
 - [ ] Étape 6 — Dashboard Streamlit
 - [ ] Étape 7 — README, recommandation, présentations portfolio
 - [ ] Étape 8 *(optionnel)* — Power BI et/ou indicateur de risque réseau

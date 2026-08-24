@@ -1,5 +1,13 @@
 # Journal de développement
 
+## 2026-08-24 — Analyse des 4 questions métier
+
+- CLI `analyze` : SQL dans `sql/analysis/`, CSV dans
+  `data/processed/analysis/`. Couverture moyenne 27,4 % ; midi d'été
+  ~63 %, soir d'hiver ~19 %. Le PV suit les pics de midi en été
+  (r = 0,64). Météo wallonne : r ≈ 0,92 (ssrd) et 0,88 (vent). Stress
+  réseau rare (0,7 % des QH) et surtout hivernal.
+
 ## 2026-08-24 — Nettoyage et entrepôt DuckDB
 
 - Schéma étoile (`sql/schema.sql`) : dim_datetime / région / source, faits

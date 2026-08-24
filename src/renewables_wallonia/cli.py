@@ -10,6 +10,7 @@ from pathlib import Path
 from renewables_wallonia.config import ConfigError, load_settings, project_root
 from renewables_wallonia.data.copernicus import CopernicusIngestError, ingest_copernicus
 from renewables_wallonia.data.elia import EliaIngestError, ingest_elia
+from renewables_wallonia.analysis import AnalysisError, format_report, run_analysis
 from renewables_wallonia.data.clean import CleanError
 from renewables_wallonia.data.warehouse import WarehouseError, build_warehouse
 
@@ -80,6 +81,10 @@ def build_parser() -> argparse.ArgumentParser:
         "build-warehouse",
         help="Nettoie les series et (re)cree l'entrepot DuckDB.",
     )
+    subparsers.add_parser(
+        "analyze",
+        help="Repond aux 4 questions metier (SQL) et ecrit les tables CSV.",
+    )
     return parser
 
 
@@ -121,6 +126,15 @@ def _run_build_warehouse(config_path: Path | None) -> int:
     return 0
 
 
+def _run_analyze(config_path: Path | None) -> int:
+    settings = load_settings(config_path)
+    root = project_root()
+    result = run_analysis(settings, root, write=True)
+    print(format_report(result))
+    print(f"tables : {root / settings.paths.analysis_dir}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> None:
     """Point d'entrée principal du CLI.
 
@@ -148,10 +162,18 @@ def main(argv: list[str] | None = None) -> None:
             raise SystemExit(_run_ingest_copernicus(args.config, args.force))
         if args.command == "build-warehouse":
             raise SystemExit(_run_build_warehouse(args.config))
+        if args.command == "analyze":
+            raise SystemExit(_run_analyze(args.config))
     except ConfigError as exc:
         logger.error("%s", exc)
         raise SystemExit(2) from exc
-    except (EliaIngestError, CopernicusIngestError, CleanError, WarehouseError) as exc:
+    except (
+        EliaIngestError,
+        CopernicusIngestError,
+        CleanError,
+        WarehouseError,
+        AnalysisError,
+    ) as exc:
         logger.error("%s", exc)
         raise SystemExit(1) from exc
 

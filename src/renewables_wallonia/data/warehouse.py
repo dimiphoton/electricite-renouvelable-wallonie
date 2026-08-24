@@ -49,6 +49,40 @@ def warehouse_path(root: Path, settings: Settings) -> Path:
     return root / settings.paths.warehouse
 
 
+def open_warehouse(
+    settings: Settings,
+    root: Path,
+    *,
+    read_only: bool = True,
+) -> duckdb.DuckDBPyConnection:
+    """Ouvre l'entrepôt existant.
+
+    Parameters
+    ----------
+    settings, root
+        Chemin ``paths.warehouse``.
+    read_only
+        Ouverture en lecture seule (analyse).
+
+    Returns
+    -------
+    duckdb.DuckDBPyConnection
+        Connexion ouverte (à fermer par l'appelant).
+
+    Raises
+    ------
+    WarehouseError
+        Fichier absent.
+    """
+
+    db_path = warehouse_path(root, settings)
+    if not db_path.is_file():
+        raise WarehouseError(
+            f"entrepot introuvable : {db_path} (lance build-warehouse)"
+        )
+    return duckdb.connect(str(db_path), read_only=read_only)
+
+
 def build_warehouse(settings: Settings, root: Path) -> Path:
     """Nettoie les bruts et (re)crée l'entrepôt.
 

@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+- Analyse métier (`analyze`) : 4 questions SQL (couverture saison/heure,
+  pics d'été, météo wallonne, complémentarité), synthèse dans
+  `docs/analyse.md`.
 - Entrepôt DuckDB (étoile) : `build-warehouse`, vue `v_belgium_qh`
   (taux de couverture Belgique, NA si une série manque).
 - Ingestion Copernicus ERA5 : NetCDF mensuels + série horaire agrégée
