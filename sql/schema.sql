@@ -1,0 +1,3 @@
+-- Schéma DuckDB (faits / dimensions).
+-- Rempli à l'étape 4 — nettoyage des séries et chargement.
+-- Tables prévues : dim_datetime, dim_region, fact_generation, fact_load, fact_weather.

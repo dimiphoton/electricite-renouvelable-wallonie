@@ -1,36 +1,49 @@
-# Project name
+# Renewable generation and electricity load in Belgium (Wallonia zoom)
 
 | | |
 |---|---|
-| **Stack** | TBD — e.g. ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white) |
-| **Level** | TBD (Beginner / Intermediate / Advanced) |
-| **Data specialty** | TBD (Machine Learning / BI / Geospatial / Data engineering) |
+| **Stack** | ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white) ![DuckDB](https://img.shields.io/badge/DuckDB-analytics-yellow?logo=duckdb&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white) ![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white) |
+| **Level** | Intermediate *(proposed — to confirm)* |
+| **Data specialty** | BI / Data engineering |
 
 ## Objective
 
-TBD: what problem this project solves, and for whom.
+Measure how Belgian solar and wind generation covers national electricity load, and which weather factors best explain **Walloon** renewable output. The end product is a reproducible pipeline (APIs → DuckDB → analysis) and a Streamlit dashboard with a numbered recommendation for an energy-sector decision maker.
+
+Elia publishes load at **Belgium** level only. Coverage (generation / load) is therefore national. Wallonia is the production and weather zoom, not a regional coverage ratio.
 
 ## Data
 
-TBD: data source, volume, time period covered.
+- **Elia Open Data** (no API key): historical 15-minute series — total load (`ods001`), solar (`ods032`), wind (`ods031`). Period: Sep 2023 – Aug 2026 (36 months, editable in `config/settings.toml`).
+- **Copernicus ERA5** (CDS account required later): solar radiation and wind, spatially averaged over Belgium / Wallonia — no GIS.
+
+The ingestion pipeline is not implemented yet (roadmap steps 2–3).
 
 ## Result
 
-TBD: the concrete result, in one or two sentences.
+Not yet. Step 1 only sets the project skeleton (package, config, CLI).
 
 ## Reproduce
 
-TBD: how to install dependencies and rerun the pipeline.
-
 ```bash
-pip install -e .
-python -m mon_projet.cli --help
+pip install -e ".[dev]"
+python -m renewables_wallonia.cli --help
+python -m renewables_wallonia.cli show-config
+pytest
 ```
 
 ## Repo structure
 
-TBD, filled in as the project progresses — see also `ROADMAP.md` and
-`JOURNAL.md` (kept in French, like the rest of the codebase).
+```
+config/settings.toml     # period, Elia datasets, ERA5 bbox — nothing hardcoded
+data/raw/                # untouched API extracts (gitignored)
+data/processed/          # DuckDB warehouse (later)
+sql/schema.sql           # star schema (filled in step 4)
+src/renewables_wallonia/ # package (CLI + config loader)
+tests/
+```
+
+See `ROADMAP.md` and `JOURNAL.md` (French, like the rest of the codebase).
 
 ## Presentations
 
