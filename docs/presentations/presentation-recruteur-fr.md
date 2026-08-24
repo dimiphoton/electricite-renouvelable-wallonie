@@ -4,28 +4,36 @@ theme: default
 paginate: true
 ---
 
-# [Nom du projet]
+# Électricité renouvelable en Belgique
+## Zoom production Wallonie
 
-*À mettre à jour à chaque étape terminée de la roadmap.*
+![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
+![DuckDB](https://img.shields.io/badge/DuckDB-analytics-yellow?logo=duckdb&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white)
+![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white)
 
-<!-- badges de stack, ex: ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white) -->
+*Portfolio — étape 1 : cadrage et socle technique*
 
 ---
 
 ## Le problème
 
-À compléter, en langage clair, sans jargon.
+Le solaire et le vent ne produisent pas de façon régulière : tout dépend du ciel et du vent.
+
+Un gestionnaire de réseau ou un fournisseur a besoin de savoir **quand** cette production couvre la consommation belge, et **pourquoi** elle varie — surtout en Wallonie.
 
 ---
 
 ## Les données
 
-À compléter, en une phrase.
+Les chiffres officiels du réseau électrique belge (Elia), au quart d'heure, plus la météo Copernicus. Pas de carte : on compare des courbes dans le temps.
+
+La consommation n'est publiée que pour **toute la Belgique**. La Wallonie est le zoom sur la production, pas un taux de couverture régional.
 
 ---
 
 ## Le résultat
 
-À compléter : ce que ça permet concrètement de faire ou de décider.
+Pas encore de tableau de bord : le projet vient d'être cadré.
 
-<!-- ![Résultat](../../pictures/presentations/à-remplacer.png) -->
+À terme : un dashboard qui dit clairement si le renouvelable suit la demande, et une recommandation chiffrée pour un décideur.

@@ -11,7 +11,7 @@ en option, après le livrable Streamlit.
 Périmètre validé : **couverture Belgique** (production renouvelable /
 charge) + **zoom production Wallonie** vs météo. Période : **3 ans**.
 
-- [ ] Étape 1 — Socle du repo (package, config, structure `data/` / `sql/`)
+- [x] Étape 1 — Socle du repo (package, config, structure `data/` / `sql/`)
 - [ ] Étape 2 — Ingestion Elia (charge, solaire, éolien historiques)
 - [ ] Étape 3 — Ingestion Copernicus ERA5 (rayonnement, vent, agrégés zone)
 - [ ] Étape 4 — Nettoyage des séries + schéma DuckDB (faits / dimensions)
