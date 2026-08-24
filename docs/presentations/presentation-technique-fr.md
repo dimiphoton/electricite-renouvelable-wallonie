@@ -11,7 +11,7 @@ paginate: true
 ![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white)
 ![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white)
 
-*Étape 1 : cadrage, package, configuration*
+*Étapes 1–4 : ingestion, nettoyage, DuckDB*
 
 ---
 
@@ -43,19 +43,17 @@ Hypothèse : on ne somme jamais la maille Belgique et la maille Wallonie (le sol
 
 ![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white) dashboard reproductible dans le repo (Power BI possible plus tard)
 
-![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white) séries temporelles, prévu aux étapes nettoyage / analyse
+![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white) nettoyage des séries (quart d'heure Elia, heure ERA5)
 
 ---
 
 ## Métriques et justification
 
-Pas encore calculées. Prévues :
+Vue SQL `v_belgium_qh` : **taux de couverture** = (PV + éolien) / charge, NA si une série manque.
 
-- **Taux de couverture** = (PV + éolien) / charge, Belgique, par heure et saison
-- **Corrélation** production wallonne vs rayonnement / vent ERA5
-- **Complémentarité** solaire vs éolien (heure, saison)
+Contrôle de sanity (pas encore l'analyse métier) : moyenne ~27 %, max ~108 % (le renouvelable peut dépasser la charge à certains quarts d'heure).
 
-Ces métriques répondent à une question métier ; ce ne sont pas des scores de modèle.
+Reste à calculer : corrélation météo wallonne, complémentarité solaire/éolien par saison.
 
 ---
 
@@ -70,6 +68,7 @@ Ces métriques répondent à une question métier ; ce ne sont pas des scores de
 
 ## Code
 
-- [`config/settings.toml`](../../config/settings.toml) — période, datasets, bbox
-- [`src/renewables_wallonia/config.py`](../../src/renewables_wallonia/config.py) — chargement typé
-- [`src/renewables_wallonia/cli.py`](../../src/renewables_wallonia/cli.py) — `show-config`
+- [`sql/schema.sql`](../../sql/schema.sql) — étoile + `v_belgium_qh`
+- [`src/renewables_wallonia/data/clean.py`](../../src/renewables_wallonia/data/clean.py) — nettoyage
+- [`src/renewables_wallonia/data/warehouse.py`](../../src/renewables_wallonia/data/warehouse.py) — `build-warehouse`
+- [`src/renewables_wallonia/cli.py`](../../src/renewables_wallonia/cli.py) — ingest + entrepôt

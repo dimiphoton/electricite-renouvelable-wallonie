@@ -2,6 +2,8 @@
 
 ## [Non publié]
 
+- Entrepôt DuckDB (étoile) : `build-warehouse`, vue `v_belgium_qh`
+  (taux de couverture Belgique, NA si une série manque).
 - Ingestion Copernicus ERA5 : NetCDF mensuels + série horaire agrégée
   (`ingest-copernicus`), bbox Belgique puis moyenne Wallonie, sans SIG.
 - Ingestion Elia : export CSV (charge, solaire, éolien) via

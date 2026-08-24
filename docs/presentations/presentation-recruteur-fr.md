@@ -12,7 +12,7 @@ paginate: true
 ![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white)
 ![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white)
 
-*Portfolio — étape 1 : cadrage et socle technique*
+*Portfolio — étapes 1 à 4 : données dans DuckDB*
 
 ---
 
@@ -34,6 +34,6 @@ La consommation n'est publiée que pour **toute la Belgique**. La Wallonie est l
 
 ## Le résultat
 
-Pas encore de tableau de bord : le projet vient d'être cadré.
+Les données sont dans une base prête à interroger (DuckDB) : consommation, solaire, éolien, météo.
 
-À terme : un dashboard qui dit clairement si le renouvelable suit la demande, et une recommandation chiffrée pour un décideur.
+Le tableau de bord et la recommandation chiffrée viennent ensuite. Un premier ordre de grandeur : sur la période, solaire + éolien couvrent en moyenne **environ 27 %** de la consommation belge (à nuancer à l'analyse).

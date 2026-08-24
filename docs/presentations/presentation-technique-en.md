@@ -11,7 +11,7 @@ paginate: true
 ![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white)
 ![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white)
 
-*Step 1: framing, package, configuration*
+*Steps 1–4: ingest, clean, DuckDB*
 
 ---
 
@@ -43,19 +43,17 @@ Assumption: never sum the Belgium grain with the Wallonia grain (Belgian solar a
 
 ![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white) reproducible in-repo dashboard (Power BI optional later)
 
-![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white) time series, planned for cleaning / analysis
+![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white) time-series cleaning (Elia 15-min, ERA5 hourly)
 
 ---
 
 ## Metrics and rationale
 
-Not computed yet. Planned:
+SQL view `v_belgium_qh`: **coverage ratio** = (PV + wind) / load, NULL if any series is missing.
 
-- **Coverage ratio** = (PV + wind) / load, Belgium, by hour and season
-- **Correlation** of Walloon generation vs ERA5 radiation / wind
-- **Complementarity** of solar vs wind (hour, season)
+Sanity check (not the business analysis yet): mean ~27%, max ~108% (renewables can exceed load in some quarter-hours).
 
-These answer a business question; they are not model scores.
+Still to compute: Walloon weather correlations, solar/wind complementarity by season.
 
 ---
 
@@ -70,6 +68,7 @@ These answer a business question; they are not model scores.
 
 ## Code
 
-- [`config/settings.toml`](../../config/settings.toml) — period, datasets, bbox
-- [`src/renewables_wallonia/config.py`](../../src/renewables_wallonia/config.py) — typed loader
-- [`src/renewables_wallonia/cli.py`](../../src/renewables_wallonia/cli.py) — `show-config`
+- [`sql/schema.sql`](../../sql/schema.sql) — star schema + `v_belgium_qh`
+- [`src/renewables_wallonia/data/clean.py`](../../src/renewables_wallonia/data/clean.py) — cleaning
+- [`src/renewables_wallonia/data/warehouse.py`](../../src/renewables_wallonia/data/warehouse.py) — `build-warehouse`
+- [`src/renewables_wallonia/cli.py`](../../src/renewables_wallonia/cli.py) — ingest + warehouse

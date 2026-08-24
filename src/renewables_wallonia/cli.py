@@ -10,6 +10,8 @@ from pathlib import Path
 from renewables_wallonia.config import ConfigError, load_settings, project_root
 from renewables_wallonia.data.copernicus import CopernicusIngestError, ingest_copernicus
 from renewables_wallonia.data.elia import EliaIngestError, ingest_elia
+from renewables_wallonia.data.clean import CleanError
+from renewables_wallonia.data.warehouse import WarehouseError, build_warehouse
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +76,10 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Retelecharge meme si les NetCDF mensuels existent deja.",
     )
+    subparsers.add_parser(
+        "build-warehouse",
+        help="Nettoie les series et (re)cree l'entrepot DuckDB.",
+    )
     return parser
 
 
@@ -108,6 +114,13 @@ def _run_ingest_copernicus(config_path: Path | None, force: bool) -> int:
     return 0
 
 
+def _run_build_warehouse(config_path: Path | None) -> int:
+    settings = load_settings(config_path)
+    db_path = build_warehouse(settings, project_root())
+    print(f"entrepot : {db_path}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> None:
     """Point d'entrée principal du CLI.
 
@@ -133,10 +146,12 @@ def main(argv: list[str] | None = None) -> None:
             raise SystemExit(_run_ingest_elia(args.config, args.force))
         if args.command == "ingest-copernicus":
             raise SystemExit(_run_ingest_copernicus(args.config, args.force))
+        if args.command == "build-warehouse":
+            raise SystemExit(_run_build_warehouse(args.config))
     except ConfigError as exc:
         logger.error("%s", exc)
         raise SystemExit(2) from exc
-    except (EliaIngestError, CopernicusIngestError) as exc:
+    except (EliaIngestError, CopernicusIngestError, CleanError, WarehouseError) as exc:
         logger.error("%s", exc)
         raise SystemExit(1) from exc
 

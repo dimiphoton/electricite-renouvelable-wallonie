@@ -19,10 +19,11 @@ Elia publishes load at **Belgium** level only. Coverage (generation / load) is t
 
 Elia: `python -m renewables_wallonia.cli ingest-elia`
 Copernicus: `python -m renewables_wallonia.cli ingest-copernicus` (queued; one NetCDF per month, resumable).
+Warehouse: `python -m renewables_wallonia.cli build-warehouse` (DuckDB star schema in `data/processed/warehouse.duckdb`).
 
 ## Result
 
-Not yet. Ingestion is in place (Elia + Copernicus); analysis comes next.
+A DuckDB warehouse is in place (`build-warehouse`): 15-minute load and generation, hourly weather, plus a Belgium coverage view. The four business questions (dashboard) are next.
 
 ## Reproduce
 
@@ -32,6 +33,7 @@ python -m renewables_wallonia.cli --help
 python -m renewables_wallonia.cli show-config
 python -m renewables_wallonia.cli ingest-elia
 python -m renewables_wallonia.cli ingest-copernicus
+python -m renewables_wallonia.cli build-warehouse
 pytest
 ```
 
@@ -42,8 +44,8 @@ pytest
 ```
 config/settings.toml     # period, Elia datasets, ERA5 bbox — nothing hardcoded
 data/raw/                # untouched API extracts (gitignored)
-data/processed/          # DuckDB warehouse (later)
-sql/schema.sql           # star schema (filled in step 4)
+data/processed/          # era5_hourly.csv + warehouse.duckdb (gitignored)
+sql/schema.sql           # DuckDB star schema + v_belgium_qh
 src/renewables_wallonia/ # package (CLI + config loader)
 tests/
 ```
