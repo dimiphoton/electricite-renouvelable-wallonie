@@ -1,0 +1,69 @@
+---
+description: Règles de documentation du dépôt (README, docstrings, commentaires, changelog)
+globs:
+alwaysApply: true
+---
+
+# Langue
+
+Toute la documentation (docstrings, commentaires, JOURNAL.md, decisions.md,
+messages de commit) est rédigée en français, à une exception près :
+**`README.md` est en anglais** — c'est la porte d'entrée publique du repo.
+Le code (noms de variables, fonctions, classes) reste en anglais dans tous
+les cas.
+
+# Commentaires dans le code
+
+Le code contient des commentaires en français aux endroits où la logique
+n'est pas évidente : choix techniques, étapes non triviales d'un algorithme,
+contournements. Pas un commentaire par ligne — seulement là où ça aide
+vraiment à comprendre le "pourquoi", pas juste le "quoi".
+
+# Docstrings
+
+- Chaque fonction et classe publique de `src/` a une docstring au format
+  NumPy : description courte, `Parameters`, `Returns`, `Raises` si pertinent
+  (intitulés de sections en anglais par convention NumPy, contenu en
+  français).
+- Les fonctions privées (préfixées `_`) ont au minimum une ligne de
+  description si leur logique n'est pas évidente.
+
+# README et changelog
+
+- Le `README.md` commence par un bloc de classification juste après le
+  titre, sous forme de tableau :
+
+  | | |
+  |---|---|
+  | **Stack** | ex : Python, scikit-learn, FastAPI |
+  | **Niveau** | Débutant / Intermédiaire / Avancé |
+  | **Spécialité data** | Machine Learning / BI / Géospatial / Data engineering |
+
+  Le "Niveau" est une estimation que tu proposes et que l'utilisateur
+  valide — c'est un jugement subjectif, ne le fige pas sans confirmation.
+- La ligne **Stack** est illustrée avec un badge par technologie principale
+  (via shields.io, ex : `![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)`)
+  plutôt qu'une liste de texte brut seul.
+- Après toute modification significative, mets à jour le `README.md`
+  correspondant : objectif du projet, structure du repo, comment reproduire
+  les résultats.
+- Les images utilisées dans le README viennent de `pictures/readme/`.
+- Consigne les évolutions importantes dans `CHANGELOG.md` (date, résumé,
+  impact éventuel sur les résultats ou l'API).
+
+# Notebooks
+
+- Les notebooks servent uniquement à l'expérimentation rapide et jetable ;
+  ils ne sont pas soumis aux mêmes exigences de documentation que `src/`.
+- Dès qu'un notebook produit un résultat ou une logique réutilisable, cette
+  logique est extraite dans une fonction testée de `src/` — le notebook se
+  contente d'appeler cette fonction, il ne duplique jamais sa logique.
+- Un notebook qui n'est plus utile est déplacé dans `notebooks/archive/` ou
+  supprimé, plutôt que laissé à traîner sans indication de son statut.
+
+# Décisions
+
+- Les choix structurants (métrique retenue, algorithme choisi, feature
+  engineering non trivial, choix d'outil) sont documentés dans
+  `docs/decisions.md`, avec la date, l'alternative envisagée et la raison du
+  choix.
