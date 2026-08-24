@@ -9,9 +9,10 @@ paginate: true
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
 ![DuckDB](https://img.shields.io/badge/DuckDB-analytics-yellow?logo=duckdb&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white)
+![Plotly](https://img.shields.io/badge/Plotly-charts-3F4F75?logo=plotly&logoColor=white)
 ![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white)
 
-*Step 1: framing, package, configuration*
+*Pipeline, dimensional SQL, Streamlit dashboard, numbered recommendation*
 
 ---
 
@@ -27,11 +28,11 @@ No ML, no GIS.
 
 ## Approach and methodology
 
-Pipeline: APIs → immutable raw files → DuckDB (star schema) → window SQL → Streamlit dashboard.
+Pipeline: APIs → immutable raw files → DuckDB (star schema) → window SQL (`PERCENT_RANK`, 7-day moving average) → Streamlit dashboard.
 
-Period: 36 months (`config/settings.toml`). Timestamps stored in UTC, displayed in `Europe/Brussels`.
+Period: 36 months. Summer peak = P90 of summer load. Stress = P90 load **and** P10 renewable. Daytime solar correlation if `ssrd > 10 W/m²`.
 
-Assumption: never sum the Belgium grain with the Wallonia grain (Belgian solar already includes Wallonia).
+Assumption: never sum the Belgium grain with the Wallonia grain.
 
 ---
 
@@ -39,37 +40,53 @@ Assumption: never sum the Belgium grain with the Wallonia grain (Belgian solar a
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white) portfolio language, `tomllib` in the stdlib
 
-![DuckDB](https://img.shields.io/badge/DuckDB-analytics-yellow?logo=duckdb&logoColor=white) analytical SQL, one file, no server (vs SQLite too limited / PostgreSQL pointless without GIS)
+![DuckDB](https://img.shields.io/badge/DuckDB-analytics-yellow?logo=duckdb&logoColor=white) analytical SQL (`CORR`, windows), one file, no server
 
-![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white) reproducible in-repo dashboard (Power BI optional later)
+![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white) business deliverable: one chart per question + recommendation banner
 
-![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white) time series, planned for cleaning / analysis
+![Plotly](https://img.shields.io/badge/Plotly-charts-3F4F75?logo=plotly&logoColor=white) hour × season heatmap, PV/ERA5 densities, hover
 
----
-
-## Metrics and rationale
-
-Not computed yet. Planned:
-
-- **Coverage ratio** = (PV + wind) / load, Belgium, by hour and season
-- **Correlation** of Walloon generation vs ERA5 radiation / wind
-- **Complementarity** of solar vs wind (hour, season)
-
-These answer a business question; they are not model scores.
+![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white) time-series cleaning (Elia 15-min, ERA5 hourly)
 
 ---
 
-## Limitations (already known)
+## Results (Sep 2023 – Aug 2026)
+
+Mean coverage **27.4%** (summer 14:00: **62.9%**; winter 18:00: **18.8%**).
+
+Summer peaks: solar ×3.2 vs off-peak, r(PV, load) = **0.64**. Daily load max ~12:00, solar ~13:00.
+
+Wallonia: r(PV, ssrd) = **0.92** (daytime 0.87); r(wind, 10 m speed) = **0.88**.
+
+PV/wind complementarity r = **−0.21**. Stress (P90×P10): **0.7%** of quarter-hours, 1.3% coverage, mostly winter — **0%** in summer.
+
+---
+
+## Numbered recommendation
+
+Winter 16–19 h slot: **19.6%** coverage. **61%** of stress quarter-hours fall there.
+
+Action: flexibility (demand, storage, imports) on that slot — not extra PV for summer peaks (already tracked).
+
+![w:1000](../../pictures/presentations/recommendation-winter.png)
+
+---
+
+## Limitations
 
 - National load only: no “Wallonia covers its own demand”
 - Elia generation is *measured & upscaled*, not validated metering
 - Offshore wind: Elia-documented gaps in 2018–2023
-- ERA5 is reanalysis, not ground stations
+- ERA5 is reanalysis (ends ~19 Aug 2026); 10 m wind, not hub height
+- Peak/stress quantiles are conventions, not Elia grid thresholds
 
 ---
 
 ## Code
 
-- [`config/settings.toml`](../../config/settings.toml) — period, datasets, bbox
-- [`src/renewables_wallonia/config.py`](../../src/renewables_wallonia/config.py) — typed loader
-- [`src/renewables_wallonia/cli.py`](../../src/renewables_wallonia/cli.py) — `show-config`
+- [`webapp/app.py`](../../webapp/app.py) — Streamlit dashboard
+- [`src/renewables_wallonia/dashboard.py`](../../src/renewables_wallonia/dashboard.py) — recommendation + figures
+- [`sql/analysis/`](../../sql/analysis/) — four named questions
+- [`docs/recommandation.md`](../recommandation.md) — recommendation (French)
+- [`docs/analyse.md`](../analyse.md) — findings (French)
+- [`sql/schema.sql`](../../sql/schema.sql) — star schema + `v_belgium_qh`

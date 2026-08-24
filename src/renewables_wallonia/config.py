@@ -59,6 +59,19 @@ class PathSettings:
     raw_dir: str
     processed_dir: str
     warehouse: str
+    analysis_dir: str
+
+
+@dataclass(frozen=True)
+class AnalysisSettings:
+    """Seuils des questions métier (quantiles et filtres)."""
+
+    peak_load_quantile: float
+    daytime_ssrd_w_m2: float
+    stress_load_quantile: float
+    stress_renewable_quantile: float
+    coverage_mid_threshold: float
+    coverage_high_threshold: float
 
 
 @dataclass(frozen=True)
@@ -77,6 +90,7 @@ class Settings:
     copernicus: CopernicusSettings
     paths: PathSettings
     display: DisplaySettings
+    analysis: AnalysisSettings
 
 
 def project_root() -> Path:
@@ -203,9 +217,11 @@ def _settings_from_dict(raw: dict[str, Any]) -> Settings:
         raw_dir=str(paths_raw["raw_dir"]),
         processed_dir=str(paths_raw["processed_dir"]),
         warehouse=str(paths_raw["warehouse"]),
+        analysis_dir=str(paths_raw.get("analysis_dir", "data/processed/analysis")),
     )
 
     display = DisplaySettings(timezone=str(raw["display"]["timezone"]))
+    analysis = _analysis_from_dict(raw.get("analysis", {}))
 
     return Settings(
         period=period,
@@ -213,4 +229,29 @@ def _settings_from_dict(raw: dict[str, Any]) -> Settings:
         copernicus=copernicus,
         paths=paths,
         display=display,
+        analysis=analysis,
     )
+
+
+def _analysis_from_dict(raw: dict[str, Any]) -> AnalysisSettings:
+    settings = AnalysisSettings(
+        peak_load_quantile=float(raw.get("peak_load_quantile", 0.9)),
+        daytime_ssrd_w_m2=float(raw.get("daytime_ssrd_w_m2", 10.0)),
+        stress_load_quantile=float(raw.get("stress_load_quantile", 0.9)),
+        stress_renewable_quantile=float(raw.get("stress_renewable_quantile", 0.1)),
+        coverage_mid_threshold=float(raw.get("coverage_mid_threshold", 0.5)),
+        coverage_high_threshold=float(raw.get("coverage_high_threshold", 1.0)),
+    )
+    for name, value in (
+        ("peak_load_quantile", settings.peak_load_quantile),
+        ("stress_load_quantile", settings.stress_load_quantile),
+        ("stress_renewable_quantile", settings.stress_renewable_quantile),
+        ("coverage_mid_threshold", settings.coverage_mid_threshold),
+    ):
+        if not 0.0 < value < 1.0:
+            raise ValueError(f"analysis.{name} doit être dans (0, 1)")
+    if settings.coverage_high_threshold <= 0:
+        raise ValueError("analysis.coverage_high_threshold doit être > 0")
+    if settings.daytime_ssrd_w_m2 < 0:
+        raise ValueError("analysis.daytime_ssrd_w_m2 doit être >= 0")
+    return settings

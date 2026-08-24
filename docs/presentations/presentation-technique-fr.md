@@ -9,9 +9,10 @@ paginate: true
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
 ![DuckDB](https://img.shields.io/badge/DuckDB-analytics-yellow?logo=duckdb&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white)
+![Plotly](https://img.shields.io/badge/Plotly-charts-3F4F75?logo=plotly&logoColor=white)
 ![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white)
 
-*Étape 1 : cadrage, package, configuration*
+*Pipeline, SQL dimensionnel, dashboard Streamlit, reco chiffrée*
 
 ---
 
@@ -27,11 +28,11 @@ Pas de ML, pas de SIG.
 
 ## Approche et méthodologie
 
-Pipeline : API → fichiers bruts intouchables → DuckDB (étoile) → SQL à fenêtres → dashboard Streamlit.
+Pipeline : API → fichiers bruts intouchables → DuckDB (étoile) → SQL à fenêtres (`PERCENT_RANK`, moyenne mobile 7 jours) → dashboard Streamlit.
 
-Période : 36 mois (`config/settings.toml`). Timestamps stockés en UTC, affichés en `Europe/Brussels`.
+Période : 36 mois. Pic d'été = P90 de la charge estivale. Stress = P90 charge **et** P10 renouvelable. Corrélation solaire « de jour » si `ssrd > 10 W/m²`.
 
-Hypothèse : on ne somme jamais la maille Belgique et la maille Wallonie (le solaire belge inclut déjà la Wallonie).
+Hypothèse : on ne somme jamais la maille Belgique et la maille Wallonie.
 
 ---
 
@@ -39,37 +40,53 @@ Hypothèse : on ne somme jamais la maille Belgique et la maille Wallonie (le sol
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white) langage du portfolio, `tomllib` en stdlib
 
-![DuckDB](https://img.shields.io/badge/DuckDB-analytics-yellow?logo=duckdb&logoColor=white) SQL analytique, un fichier, pas de serveur (vs SQLite trop limité / PostgreSQL inutile sans SIG)
+![DuckDB](https://img.shields.io/badge/DuckDB-analytics-yellow?logo=duckdb&logoColor=white) SQL analytique (`CORR`, fenêtres), un fichier, pas de serveur
 
-![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white) dashboard reproductible dans le repo (Power BI possible plus tard)
+![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white) livrable métier, une viz par question + bandeau de reco
 
-![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white) séries temporelles, prévu aux étapes nettoyage / analyse
+![Plotly](https://img.shields.io/badge/Plotly-charts-3F4F75?logo=plotly&logoColor=white) heatmap heure × saison, densités PV/ERA5, hover
 
----
-
-## Métriques et justification
-
-Pas encore calculées. Prévues :
-
-- **Taux de couverture** = (PV + éolien) / charge, Belgique, par heure et saison
-- **Corrélation** production wallonne vs rayonnement / vent ERA5
-- **Complémentarité** solaire vs éolien (heure, saison)
-
-Ces métriques répondent à une question métier ; ce ne sont pas des scores de modèle.
+![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white) nettoyage des séries (quart d'heure Elia, heure ERA5)
 
 ---
 
-## Limites (déjà identifiées)
+## Résultats (sept. 2023 – août 2026)
+
+Couverture moyenne **27,4 %** (midi d'été 14 h : **62,9 %** ; soir d'hiver 18 h : **18,8 %**).
+
+Pics d'été : solaire ×3,2 vs hors pic, r(PV, charge) = **0,64**. Max journalier de charge ~12 h, solaire ~13 h.
+
+Wallonie : r(PV, ssrd) = **0,92** (jour 0,87) ; r(éolien, vent 10 m) = **0,88**.
+
+Complémentarité PV/éolien r = **−0,21**. Stress (P90×P10) : **0,7 %** des QH, couverture 1,3 %, surtout hiver — **0 %** en été.
+
+---
+
+## Recommandation chiffrée
+
+Créneau hivernal 16–19 h : couverture **19,6 %**. **61 %** des QH de stress y tombent.
+
+Action : flex (demande, stockage, import) sur ce créneau — pas de PV extra pour les pics d'été (déjà suivis).
+
+![w:1000](../../pictures/presentations/recommandation-hiver.png)
+
+---
+
+## Limites
 
 - Charge nationale seulement : pas de « la Wallonie couvre sa demande »
 - Production Elia = *measured & upscaled*, pas du comptage validé
 - Éolien offshore : écarts documentés par Elia sur 2018–2023
-- ERA5 = réanalyse, pas des stations au sol
+- ERA5 = réanalyse (arrêt ~19 août 2026), vent à 10 m pas à hauteur de moyeu
+- Quantiles de pic/stress = conventions, pas des seuils réseau Elia
 
 ---
 
 ## Code
 
-- [`config/settings.toml`](../../config/settings.toml) — période, datasets, bbox
-- [`src/renewables_wallonia/config.py`](../../src/renewables_wallonia/config.py) — chargement typé
-- [`src/renewables_wallonia/cli.py`](../../src/renewables_wallonia/cli.py) — `show-config`
+- [`webapp/app.py`](../../webapp/app.py) — dashboard Streamlit
+- [`src/renewables_wallonia/dashboard.py`](../../src/renewables_wallonia/dashboard.py) — reco + figures
+- [`sql/analysis/`](../../sql/analysis/) — 4 questions nommées
+- [`docs/recommandation.md`](../recommandation.md) — reco métier
+- [`docs/analyse.md`](../analyse.md) — findings
+- [`sql/schema.sql`](../../sql/schema.sql) — étoile + `v_belgium_qh`

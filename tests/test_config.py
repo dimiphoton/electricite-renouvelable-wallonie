@@ -22,6 +22,8 @@ def test_load_default_settings() -> None:
     assert "Wallonia" in settings.elia.regions.solar
     assert "Wallonia" in settings.elia.regions.wind
     assert settings.display.timezone == "Europe/Brussels"
+    assert settings.analysis.peak_load_quantile == 0.9
+    assert settings.paths.analysis_dir == "data/processed/analysis"
     assert len(settings.copernicus.belgium_bbox) == 4
 
 
