@@ -2,6 +2,10 @@
 
 ## [Non publié]
 
+- Dashboard Streamlit plus éditorial : problématique en une question,
+  cartes de cadrage, reco encadrée, insights avant les graphiques.
+  Figures Plotly retravaillées (heatmap annotée, profils saisonniers,
+  aires empilées été, complémentarité).
 - README (EN), recommandation métier (`docs/recommandation.md`) et
   quatre présentations Marp FR/EN : reco flex hivernal 16–19 h vs PV
   d'été, visuels heure × saison.

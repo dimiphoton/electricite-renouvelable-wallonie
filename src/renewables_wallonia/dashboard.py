@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -30,14 +31,34 @@ BAND_LABELS = {
     "evening": "Soir (17–20 h)",
     "other": "Reste de la journée",
 }
-BAND_ORDER = ("Midi (11–15 h)", "Soir (17–20 h)", "Reste de la journée")
+BAND_ORDER = (
+    "Midi (11–15 h)",
+    "Soir (17–20 h)",
+    "Reste de la journée",
+)
 
-SOLAR = "#E8A317"
-WIND = "#2E86AB"
-LOAD = "#4A4A4A"
-COVERAGE = "#1B7F4E"
-STRESS = "#C0392B"
-MUTED = "#B7C4B7"
+SOLAR = "#D4922A"
+WIND = "#3A7194"
+LOAD = "#2A3035"
+COVERAGE = "#2C6A4A"
+STRESS = "#B03A45"
+MUTED = "#C4BDB3"
+INK = "#1C1917"
+GRID = "#E8E4DC"
+PAPER = "#FBF9F6"
+SEASON_COLORS = {
+    "winter": "#4A6F9A",
+    "spring": "#5F8F62",
+    "summer": "#D4922A",
+    "autumn": "#B56A3A",
+}
+COVERAGE_SCALE = (
+    (0.0, "#F4F0E8"),
+    (0.25, "#C9D6B8"),
+    (0.55, "#6E9A6A"),
+    (1.0, "#1E4A32"),
+)
+CHART_CONFIG = {"displayModeBar": False, "responsive": True}
 
 REQUIRED_TABLES = (
     "coverage_overall",
@@ -390,8 +411,28 @@ def format_number(value: float, digits: int) -> str:
     return f"{value:.{digits}f}".replace(".", ",")
 
 
+def format_period(start: date, end: date) -> str:
+    """Période en français court, ex. ``sept. 2023 – août 2026``."""
+
+    months = (
+        "janv.",
+        "févr.",
+        "mars",
+        "avr.",
+        "mai",
+        "juin",
+        "juil.",
+        "août",
+        "sept.",
+        "oct.",
+        "nov.",
+        "déc.",
+    )
+    return f"{months[start.month - 1]} {start.year} – {months[end.month - 1]} {end.year}"
+
+
 def fig_coverage_heatmap(by_hour: pd.DataFrame) -> go.Figure:
-    """Carte heure x saison du taux de couverture belge."""
+    """Carte heure × saison du taux de couverture belge, avec les deux extrêmes."""
 
     pivot = (
         by_hour.pivot_table(
@@ -403,20 +444,76 @@ def fig_coverage_heatmap(by_hour: pd.DataFrame) -> go.Figure:
     )
     z_values = pivot.to_numpy(dtype=float) * 100.0
     y_labels = [SEASON_LABELS.get(str(idx), str(idx)) for idx in pivot.index]
-    fig = px.imshow(
-        z_values,
-        x=list(pivot.columns),
-        y=y_labels,
-        color_continuous_scale="YlGn",
-        aspect="auto",
-        origin="upper",
-        labels={"color": "Couverture (%)"},
-        title="Couverture moyenne (PV + éolien) / charge, par heure et saison",
+    fig = go.Figure(
+        data=go.Heatmap(
+            z=z_values,
+            x=list(pivot.columns),
+            y=y_labels,
+            colorscale=COVERAGE_SCALE,
+            zmin=0,
+            zmax=max(70.0, float(np.nanmax(z_values))),
+            colorbar=dict(
+                title=dict(text="Couverture", font=dict(size=11)),
+                ticksuffix=" %",
+                thickness=12,
+                len=0.82,
+                outlinewidth=0,
+                tickfont=dict(size=11),
+            ),
+            hovertemplate="%{y} · %{x} h<br><b>%{z:.1f} %</b><extra></extra>",
+            xgap=1,
+            ygap=1,
+        )
     )
-    fig.update_traces(hovertemplate="%{y} · %{x} h<br>%{z:.1f} %<extra></extra>")
-    fig.update_xaxes(title="Heure (Bruxelles)", dtick=2)
-    fig.update_yaxes(title="")
-    return _style(fig, height=380)
+    fig.update_xaxes(title="Heure (Bruxelles)", dtick=2, ticksuffix=" h")
+    fig.update_yaxes(title="", autorange="reversed")
+    _annotate_heatmap_extremes(fig, pivot, y_labels)
+    return _style(
+        fig,
+        height=430,
+        title="La couverture n'est pas un socle : midi d'été vs soir d'hiver",
+    )
+
+
+def fig_coverage_hourly_lines(by_hour: pd.DataFrame) -> go.Figure:
+    """Profil journalier de couverture, une courbe par saison."""
+
+    fig = go.Figure()
+    fig.add_vrect(
+        x0=15.5,
+        x1=19.5,
+        fillcolor=STRESS,
+        opacity=0.08,
+        line_width=0,
+        annotation_text="16–19 h",
+        annotation_position="top right",
+        annotation_font=dict(size=11, color=STRESS),
+    )
+    for season in SEASON_ORDER:
+        subset = by_hour.loc[by_hour["season"] == season].sort_values("hour")
+        if subset.empty:
+            continue
+        width = 3.1 if season == "winter" else 2.4
+        fig.add_trace(
+            go.Scatter(
+                x=subset["hour"],
+                y=subset["mean_coverage"],
+                name=SEASON_LABELS[season],
+                mode="lines",
+                line=dict(color=SEASON_COLORS[season], width=width, shape="spline"),
+                hovertemplate=(
+                    f"%{{x}} h · {SEASON_LABELS[season]}<br><b>%{{y:.0%}}</b><extra></extra>"
+                ),
+            )
+        )
+    _mark_hourly_extremes(fig, by_hour)
+    fig.update_xaxes(title="Heure (Bruxelles)", dtick=2, range=[-0.4, 23.4])
+    fig.update_yaxes(title="Couverture", tickformat=".0%", rangemode="tozero")
+    return _style(
+        fig,
+        height=400,
+        title="Le même trou revient chaque hiver, à la même heure",
+    )
 
 
 def fig_coverage_ma7(daily: pd.DataFrame) -> go.Figure:
@@ -428,8 +525,9 @@ def fig_coverage_ma7(daily: pd.DataFrame) -> go.Figure:
         go.Scatter(
             x=frame["date_brussels"],
             y=frame["coverage"],
-            name="Journalière",
-            line=dict(color=MUTED, width=1),
+            name="Jour par jour",
+            line=dict(color=MUTED, width=0.7),
+            opacity=0.55,
             hovertemplate="%{x|%d/%m/%Y}<br>%{y:.1%}<extra>Journalière</extra>",
         )
     )
@@ -437,15 +535,20 @@ def fig_coverage_ma7(daily: pd.DataFrame) -> go.Figure:
         go.Scatter(
             x=frame["date_brussels"],
             y=frame["coverage_ma7"],
-            name="Moyenne mobile 7 jours",
-            line=dict(color=COVERAGE, width=2.2),
+            name="Moyenne 7 jours",
+            line=dict(color=COVERAGE, width=2.6),
+            fill="tozeroy",
+            fillcolor="rgba(44, 106, 74, 0.12)",
             hovertemplate="%{x|%d/%m/%Y}<br>%{y:.1%}<extra>MA7</extra>",
         )
     )
     fig.update_yaxes(title="Couverture", tickformat=".0%", rangemode="tozero")
     fig.update_xaxes(title="")
-    fig.update_layout(title="Couverture journalière belge (moyenne mobile 7 jours)")
-    return _style(fig)
+    return _style(
+        fig,
+        height=360,
+        title="Sur trois ans, le mix oscille : ce n'est pas une base ferme",
+    )
 
 
 def fig_summer_peak_bars(peaks: pd.DataFrame) -> go.Figure:
@@ -471,16 +574,26 @@ def fig_summer_peak_bars(peaks: pd.DataFrame) -> go.Figure:
         color="filière",
         barmode="group",
         color_discrete_map={"Solaire": SOLAR, "Éolien": WIND},
-        title="Production moyenne aux pics d'été (P90 de la charge) vs hors pics",
+        text_auto=".0f",
     )
-    fig.update_traces(hovertemplate="%{x}<br>%{legendgroup} : %{y:.0f} MW<extra></extra>")
-    fig.update_yaxes(title="MW")
+    fig.update_traces(
+        marker_line_width=0,
+        width=0.38,
+        hovertemplate="%{x}<br>%{legendgroup} : <b>%{y:.0f} MW</b><extra></extra>",
+        textposition="outside",
+        cliponaxis=False,
+    )
+    fig.update_yaxes(title="MW", rangemode="tozero")
     fig.update_xaxes(title="")
-    return _style(fig, height=380)
+    return _style(
+        fig,
+        height=400,
+        title="Aux pics de charge d'été, c'est le solaire qui suit — pas l'éolien",
+    )
 
 
 def fig_summer_hourly_profiles(by_hour: pd.DataFrame) -> go.Figure:
-    """Profils moyens d'été : charge, solaire, éolien."""
+    """Profils moyens d'été : solaire et éolien empilés face à la charge."""
 
     summer = by_hour.loc[by_hour["season"] == "summer"].sort_values("hour")
     fig = go.Figure()
@@ -488,34 +601,32 @@ def fig_summer_hourly_profiles(by_hour: pd.DataFrame) -> go.Figure:
         x0=10.5,
         x1=15.5,
         fillcolor=SOLAR,
-        opacity=0.12,
+        opacity=0.10,
         line_width=0,
         annotation_text="midi",
         annotation_position="top left",
+        annotation_font=dict(size=11, color=SOLAR),
     )
     fig.add_vrect(
         x0=16.5,
         x1=20.5,
         fillcolor=STRESS,
-        opacity=0.10,
+        opacity=0.08,
         line_width=0,
         annotation_text="soir",
         annotation_position="top right",
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=summer["hour"],
-            y=summer["mean_load_mw"],
-            name="Charge",
-            line=dict(color=LOAD, width=2.4),
-        )
+        annotation_font=dict(size=11, color=STRESS),
     )
     fig.add_trace(
         go.Scatter(
             x=summer["hour"],
             y=summer["mean_solar_mw"],
             name="Solaire",
-            line=dict(color=SOLAR, width=2.2),
+            stackgroup="ren",
+            mode="lines",
+            line=dict(width=0.5, color=SOLAR, shape="spline"),
+            fillcolor="rgba(212, 146, 42, 0.55)",
+            hovertemplate="%{x} h<br>Solaire : <b>%{y:.0f} MW</b><extra></extra>",
         )
     )
     fig.add_trace(
@@ -523,14 +634,30 @@ def fig_summer_hourly_profiles(by_hour: pd.DataFrame) -> go.Figure:
             x=summer["hour"],
             y=summer["mean_wind_mw"],
             name="Éolien",
-            line=dict(color=WIND, width=2.2),
+            stackgroup="ren",
+            mode="lines",
+            line=dict(width=0.5, color=WIND, shape="spline"),
+            fillcolor="rgba(58, 113, 148, 0.45)",
+            hovertemplate="%{x} h<br>Éolien : <b>%{y:.0f} MW</b><extra></extra>",
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=summer["hour"],
+            y=summer["mean_load_mw"],
+            name="Charge",
+            mode="lines",
+            line=dict(color=LOAD, width=2.8, shape="spline"),
+            hovertemplate="%{x} h<br>Charge : <b>%{y:.0f} MW</b><extra></extra>",
         )
     )
     fig.update_xaxes(title="Heure (Bruxelles)", dtick=2)
-    fig.update_yaxes(title="MW")
-    fig.update_layout(title="Profils moyens d'été en Belgique")
-    fig.update_traces(hovertemplate="%{x} h<br>%{y:.0f} MW<extra>%{fullData.name}</extra>")
-    return _style(fig)
+    fig.update_yaxes(title="MW", rangemode="tozero")
+    return _style(
+        fig,
+        height=420,
+        title="En été, le solaire colle au pic de midi — et s'éteint avant le soir",
+    )
 
 
 def fig_summer_hour_bands(bands: pd.DataFrame) -> go.Figure:
@@ -543,28 +670,32 @@ def fig_summer_hour_bands(bands: pd.DataFrame) -> go.Figure:
     )
     frame = frame.sort_values("creneau")
     color_map = {
-        "Midi (11–15 h)": SOLAR,
-        "Soir (17–20 h)": STRESS,
-        "Reste de la journée": MUTED,
+        BAND_LABELS["midday"]: SOLAR,
+        BAND_LABELS["evening"]: STRESS,
+        BAND_LABELS["other"]: MUTED,
     }
     colors = [color_map.get(str(label), MUTED) for label in frame["creneau"]]
-    fig = px.bar(
-        frame,
-        x="creneau",
-        y="mean_coverage",
-        title="Couverture d'été selon le créneau horaire",
-    )
+    fig = px.bar(frame, x="creneau", y="mean_coverage", text_auto=".0%")
     fig.update_traces(
         marker_color=colors,
-        hovertemplate="%{x}<br>%{y:.1%}<extra></extra>",
+        marker_line_width=0,
+        hovertemplate="%{x}<br><b>%{y:.0%}</b><extra></extra>",
+        textposition="outside",
+        cliponaxis=False,
     )
-    fig.update_yaxes(title="Couverture", tickformat=".0%", rangemode="tozero")
+    fig.update_yaxes(
+        title="Couverture", tickformat=".0%", rangemode="tozero", range=[0, 0.75]
+    )
     fig.update_xaxes(title="")
-    return _style(fig, height=360)
+    return _style(
+        fig,
+        height=360,
+        title="Midi d'été : 60 % couverts. Début de soirée : plus que 31 %",
+    )
 
 
 def fig_weather_corr_by_season(by_season: pd.DataFrame) -> go.Figure:
-    """Corrélations Wallonie x ERA5 par saison."""
+    """Corrélations Wallonie × ERA5 par saison."""
 
     frame = _with_season_label(by_season)
     long = frame.melt(
@@ -589,12 +720,23 @@ def fig_weather_corr_by_season(by_season: pd.DataFrame) -> go.Figure:
             "PV vs rayonnement": SOLAR,
             "Éolien vs vent 10 m": WIND,
         },
-        title="Corrélation production wallonne x météo ERA5",
+        title="",
     )
-    fig.update_yaxes(title="r de Pearson", range=[0, 1])
+    fig.update_yaxes(title="r de Pearson", range=[0, 1.05])
     fig.update_xaxes(title="")
-    fig.update_traces(hovertemplate="%{x}<br>%{legendgroup} : r = %{y:.2f}<extra></extra>")
-    return _style(fig, height=380)
+    fig.update_traces(
+        marker_line_width=0,
+        hovertemplate="%{x}<br>%{legendgroup} : <b>r = %{y:.2f}</b><extra></extra>",
+        texttemplate="%{y:.2f}",
+        textposition="outside",
+        cliponaxis=False,
+        width=0.36,
+    )
+    return _style(
+        fig,
+        height=400,
+        title="En Wallonie, la météo ERA5 explique déjà l'essentiel de la production",
+    )
 
 
 def fig_solar_vs_ssrd(hourly: pd.DataFrame) -> go.Figure:
@@ -604,16 +746,25 @@ def fig_solar_vs_ssrd(hourly: pd.DataFrame) -> go.Figure:
         hourly,
         x="ssrd_w_m2",
         y="solar_mw",
-        nbinsx=40,
-        nbinsy=40,
-        color_continuous_scale="YlOrRd",
+        nbinsx=42,
+        nbinsy=42,
+        color_continuous_scale=[
+            [0.0, "#F7F5F2"],
+            [0.35, "#F0D9A8"],
+            [0.7, "#D4922A"],
+            [1.0, "#8A5A12"],
+        ],
         labels={
             "ssrd_w_m2": "Rayonnement ERA5 (W/m²)",
             "solar_mw": "PV wallon (MW)",
         },
-        title="PV wallon vs rayonnement descendant (densité horaire)",
     )
-    return _style(fig, height=400)
+    fig.update_coloraxes(colorbar_title_text="Heures")
+    return _style(
+        fig,
+        height=420,
+        title="Plus il y a de soleil, plus le PV wallon produit — presque linéairement",
+    )
 
 
 def fig_wind_vs_speed(hourly: pd.DataFrame) -> go.Figure:
@@ -623,16 +774,25 @@ def fig_wind_vs_speed(hourly: pd.DataFrame) -> go.Figure:
         hourly,
         x="wind_speed_ms",
         y="wind_mw",
-        nbinsx=40,
-        nbinsy=40,
-        color_continuous_scale="Blues",
+        nbinsx=42,
+        nbinsy=42,
+        color_continuous_scale=[
+            [0.0, "#F7F5F2"],
+            [0.35, "#B7D0DE"],
+            [0.7, "#3A7194"],
+            [1.0, "#1C3F56"],
+        ],
         labels={
             "wind_speed_ms": "Vent ERA5 à 10 m (m/s)",
             "wind_mw": "Éolien wallon (MW)",
         },
-        title="Éolien wallon vs vent à 10 m (densité horaire)",
     )
-    return _style(fig, height=400)
+    fig.update_coloraxes(colorbar_title_text="Heures")
+    return _style(
+        fig,
+        height=420,
+        title="L'éolien wallon suit le vent — même mesuré à 10 m, pas au moyeu",
+    )
 
 
 def fig_mix_by_season(by_season: pd.DataFrame) -> go.Figure:
@@ -658,57 +818,212 @@ def fig_mix_by_season(by_season: pd.DataFrame) -> go.Figure:
         color="filiere",
         barmode="stack",
         color_discrete_map={"Solaire": SOLAR, "Éolien": WIND},
-        title="Mix renouvelable belge : part solaire vs éolien",
+        title="",
     )
-    fig.update_yaxes(title="Part du renouvelable", tickformat=".0%", range=[0, 1])
+    fig.update_yaxes(title="Part du renouvelable", tickformat=".0%", range=[0, 1.02])
     fig.update_xaxes(title="")
-    fig.update_traces(hovertemplate="%{x}<br>%{legendgroup} : %{y:.0%}<extra></extra>")
-    return _style(fig, height=380)
+    fig.update_traces(
+        marker_line_width=0,
+        hovertemplate="%{x}<br>%{legendgroup} : <b>%{y:.0%}</b><extra></extra>",
+        texttemplate="%{y:.0%}",
+        textposition="inside",
+        insidetextanchor="middle",
+        textfont=dict(size=12, color="#FFFEFB"),
+    )
+    return _style(
+        fig,
+        height=380,
+        title="L'hiver, l'éolien porte le mix.<br>L'été, le solaire prend le relais — trop tard le soir",
+    )
+
+
+def fig_complementarity_corr(by_season: pd.DataFrame) -> go.Figure:
+    """Corrélation horaire solaire × éolien, une barre par saison."""
+
+    frame = _with_season_label(by_season)
+    fig = go.Figure(
+        go.Bar(
+            x=frame["saison"],
+            y=frame["corr_solar_wind"],
+            marker_color=WIND,
+            marker_line_width=0,
+            text=[f"{value:.2f}" for value in frame["corr_solar_wind"]],
+            textposition="outside",
+            cliponaxis=False,
+            hovertemplate="%{x}<br><b>r = %{y:.2f}</b><extra></extra>",
+        )
+    )
+    fig.add_hline(y=0, line_width=1, line_color=INK, opacity=0.45)
+    fig.update_yaxes(title="r PV × éolien", range=[-0.45, 0.12], zeroline=False)
+    fig.update_xaxes(title="")
+    return _style(
+        fig,
+        height=380,
+        title="À l'heure, PV et éolien ne se relaient pas",
+        showlegend=False,
+    )
 
 
 def fig_stress_by_hour(stress: pd.DataFrame) -> go.Figure:
     """Nombre de quarts d'heure de stress par heure de la journée."""
 
     frame = stress.sort_values("hour")
+    in_evening = frame["hour"].isin(list(WINTER_EVENING_HOURS))
+    colors = [STRESS if flag else MUTED for flag in in_evening]
     fig = go.Figure()
     fig.add_vrect(
         x0=15.5,
         x1=19.5,
         fillcolor=STRESS,
-        opacity=0.12,
+        opacity=0.07,
         line_width=0,
-        annotation_text="16-19 h",
-        annotation_position="top left",
     )
     fig.add_trace(
         go.Bar(
             x=frame["hour"],
             y=frame["n_stress"],
-            marker_color=STRESS,
+            marker_color=colors,
+            marker_line_width=0,
             name="Quarts d'heure de stress",
-            hovertemplate="%{x} h<br>%{y:.0f} QH<extra></extra>",
+            hovertemplate="%{x} h<br><b>%{y:.0f}</b> quarts d'heure<extra></extra>",
         )
     )
     fig.update_xaxes(title="Heure (Bruxelles)", dtick=1)
-    fig.update_yaxes(title="Nombre de quarts d'heure")
-    fig.update_layout(
-        title="Heures tendues : charge haute (P90) et renouvelable bas (P10)"
+    fig.update_yaxes(title="Quarts d'heure tendus", rangemode="tozero")
+    fig.add_annotation(
+        x=17.5,
+        y=1.0,
+        yref="paper",
+        text="16–19 h : le gros du stress",
+        showarrow=False,
+        font=dict(size=11, color=STRESS),
+        yanchor="bottom",
     )
-    return _style(fig)
+    return _style(
+        fig,
+        height=400,
+        title="Les heures vraiment tendues se concentrent en fin d'après-midi",
+        showlegend=False,
+    )
 
 
-def _style(fig: go.Figure, *, height: int = 420) -> go.Figure:
-    fig.update_layout(
-        template="plotly_white",
-        height=height,
-        margin=dict(l=48, r=28, t=60, b=44),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0),
-        font=dict(size=13, color="#1A1A1A"),
-        title=dict(font=dict(size=16)),
-        paper_bgcolor="white",
-        plot_bgcolor="white",
+def _style(
+    fig: go.Figure,
+    *,
+    height: int = 420,
+    title: str | None = None,
+    showlegend: bool | None = None,
+) -> go.Figure:
+    layout: dict = {
+        "template": "plotly_white",
+        "height": height,
+        "margin": dict(l=52, r=24, t=72 if title else 48, b=48),
+        "legend": dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            x=0,
+            bgcolor="rgba(0,0,0,0)",
+            font=dict(size=12),
+        ),
+        "font": dict(
+            family="Source Sans 3, Segoe UI, Helvetica Neue, sans-serif",
+            size=13,
+            color=INK,
+        ),
+        "title": dict(
+            text=title or fig.layout.title.text,
+            font=dict(size=16, color=INK, family="Source Sans 3, Segoe UI, sans-serif"),
+            x=0.0,
+            xanchor="left",
+            pad=dict(b=8),
+        ),
+        "paper_bgcolor": "rgba(0,0,0,0)",
+        "plot_bgcolor": PAPER,
+        "hoverlabel": dict(
+            bgcolor="#FFFEFB",
+            bordercolor=GRID,
+            font=dict(size=12, color=INK),
+        ),
+        "bargap": 0.28,
+        "coloraxis_colorbar": dict(outlinewidth=0, thickness=10, len=0.82),
+    }
+    if showlegend is not None:
+        layout["showlegend"] = showlegend
+    fig.update_layout(**layout)
+    fig.update_xaxes(
+        showgrid=False,
+        linecolor=GRID,
+        tickcolor=GRID,
+        zeroline=False,
+        title_font=dict(size=12, color="#57534E"),
+        tickfont=dict(size=11, color="#57534E"),
+    )
+    fig.update_yaxes(
+        gridcolor=GRID,
+        gridwidth=1,
+        zeroline=False,
+        linecolor=GRID,
+        title_font=dict(size=12, color="#57534E"),
+        tickfont=dict(size=11, color="#57534E"),
     )
     return fig
+
+
+def _annotate_heatmap_extremes(
+    fig: go.Figure, pivot: pd.DataFrame, y_labels: list[str]
+) -> None:
+    """Marque le midi d'été et le soir d'hiver sur la heatmap."""
+
+    mapping = dict(zip(pivot.index.astype(str), y_labels, strict=False))
+    spots = (("summer", 14, "Midi d'été"), ("winter", 18, "Soir d'hiver"))
+    for season, hour, label in spots:
+        if season not in pivot.index or hour not in pivot.columns:
+            continue
+        value = pivot.loc[season, hour]
+        if pd.isna(value):
+            continue
+        fig.add_annotation(
+            x=hour,
+            y=mapping.get(season, season),
+            text=f"{label}<br>{100 * float(value):.0f} %",
+            showarrow=True,
+            arrowhead=0,
+            arrowwidth=1,
+            arrowcolor=INK,
+            ax=0,
+            ay=-36 if season == "summer" else 36,
+            font=dict(size=11, color=INK),
+            bgcolor="rgba(255,254,251,0.92)",
+            bordercolor=GRID,
+            borderwidth=1,
+            borderpad=4,
+        )
+
+
+def _mark_hourly_extremes(fig: go.Figure, by_hour: pd.DataFrame) -> None:
+    """Pose un point sur le midi d'été et le soir d'hiver."""
+
+    spots = (("summer", 14), ("winter", 18))
+    for season, hour in spots:
+        subset = by_hour.loc[
+            (by_hour["season"] == season) & (by_hour["hour"] == hour),
+            "mean_coverage",
+        ]
+        if subset.empty:
+            continue
+        fig.add_trace(
+            go.Scatter(
+                x=[hour],
+                y=[float(subset.iloc[0])],
+                mode="markers",
+                marker=dict(size=9, color=SEASON_COLORS[season], line=dict(width=0)),
+                showlegend=False,
+                hovertemplate=(
+                    f"{SEASON_LABELS[season]} · {hour} h<br><b>%{{y:.0%}}</b><extra></extra>"
+                ),
+            )
+        )
 
 
 def _with_season_label(frame: pd.DataFrame) -> pd.DataFrame:
@@ -746,4 +1061,3 @@ def _finite(value: float | None) -> float:
     if value is None or pd.isna(value):
         return float("nan")
     return float(value)
-

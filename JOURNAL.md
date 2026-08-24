@@ -1,5 +1,13 @@
 # Journal de développement
 
+## 2026-08-24 — Polish Streamlit
+
+- `webapp/app.py` : question décideur en titre, trois cartes de cadrage
+  (mesure, Belgique vs Wallonie, période), KPIs et reco encadrée,
+  un insight par onglet.
+- Graphiques Plotly : heatmap annotée, courbes saisonnières, profils
+  d'été empilés vs charge, complémentarité horaire.
+
 ## 2026-08-24 — README, recommandation, présentations
 
 - README public (EN) : quatre questions du dashboard, reco chiffrée,

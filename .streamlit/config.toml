@@ -1,8 +1,8 @@
 [theme]
-primaryColor = "#1B7F4E"
-backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F3F6F3"
-textColor = "#1A1A1A"
+primaryColor = "#2C6A4A"
+backgroundColor = "#F7F5F2"
+secondaryBackgroundColor = "#EFEBE4"
+textColor = "#1C1917"
 font = "sans serif"
 
 [browser]
@@ -10,4 +10,3 @@ gatherUsageStats = false
 
 [client]
 toolbarMode = "minimal"
-

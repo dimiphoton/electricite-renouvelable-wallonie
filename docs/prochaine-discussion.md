@@ -18,14 +18,15 @@ prochaine étape
 | | |
 |---|---|
 | Dernière étape close | 7 — README, recommandation, présentations portfolio |
+| **Hors roadmap (ce chat)** | Polish éditorial du dashboard Streamlit |
 | **Prochaine étape** | **8 *(optionnel)* — Power BI et/ou indicateur de risque réseau** |
-| Branche | `feature/readme-presentations` (contient aussi le dashboard Streamlit non mergé ; à merger dans `main` **sans** `.cursor/`) |
-| Fichiers utiles | `ROADMAP.md`, `JOURNAL.md`, `brief/objectif.md`, `docs/decisions.md`, `docs/recommandation.md`, `README.md`, `docs/presentations/` |
+| Branche | `feature/readme-presentations` (dashboard Streamlit poli ; à merger dans `main` **sans** `.cursor/`) |
+| Fichiers utiles | `webapp/app.py`, `src/renewables_wallonia/dashboard.py`, `ROADMAP.md`, `JOURNAL.md`, `brief/objectif.md`, `docs/decisions.md` |
 
 ### Déjà en place (ne pas refaire)
 
 - Pipeline API → DuckDB, CLI `analyze`, SQL dans `sql/analysis/`, conclusions dans `docs/analyse.md`.
-- Dashboard Streamlit (`python -m renewables_wallonia.cli dashboard`) : une viz par question + reco chiffrée (flex 16–19 h hiver).
+- Dashboard Streamlit (`python -m renewables_wallonia.cli dashboard`) : problématique cadrée, reco chiffrée (flex 16–19 h hiver), une viz travaillée par question.
 - README public EN, `docs/recommandation.md`, quatre sources Marp FR/EN. Les HTML dans `docs/slides/` sont régénérés par GitHub Actions au push sur `main`.
 - Pas de ML, pas de SIG, pas de Power BI.
 
@@ -33,7 +34,7 @@ prochaine étape
 
 - **D'abord** merger `feature/readme-presentations` dans `main` sans `.cursor/` (procédure de la règle workflow), pour que le dashboard + README + slides soient sur `main`.
 - Ensuite, **seulement si l'utilisateur confirme** : Power BI et/ou un indicateur simple de risque réseau. L'étape 8 est optionnelle : si pas de feu vert, clôturer le cœur du projet.
-- Ne pas refaire le README ni les présentations.
+- Ne pas refaire le README, les présentations, ni le polish Streamlit.
 
 ---
 

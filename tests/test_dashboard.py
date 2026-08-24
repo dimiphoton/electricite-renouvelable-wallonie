@@ -92,6 +92,41 @@ def test_build_recommendation_cible_le_soir_dhiver() -> None:
     assert "été" in reco.action.lower() or "pics d'été" in reco.action.lower()
 
 
+def test_format_period_en_francais() -> None:
+    """La période s'affiche en mois français."""
+    from datetime import date
+
+    from renewables_wallonia.dashboard import format_period
+
+    assert format_period(date(2023, 9, 1), date(2026, 8, 31)) == "sept. 2023 – août 2026"
+
+
+def test_fig_coverage_hourly_lines_a_des_traces() -> None:
+    """Les courbes saisonnières Q1 produisent une figure non vide."""
+    from renewables_wallonia.dashboard import fig_coverage_hourly_lines
+
+    fig = fig_coverage_hourly_lines(_hour_season_frame())
+    assert fig.data
+    assert fig.layout.title.text
+
+
+def test_fig_complementarity_corr_a_des_barres() -> None:
+    """Le graphique de complémentarité a une barre par saison."""
+    from renewables_wallonia.dashboard import fig_complementarity_corr
+
+    frame = pd.DataFrame(
+        {
+            "season": ["winter", "spring", "summer", "autumn"],
+            "corr_solar_wind": [-0.12, -0.15, -0.15, -0.12],
+            "solar_share_of_renewable": [0.13, 0.37, 0.44, 0.23],
+            "wind_share_of_renewable": [0.87, 0.63, 0.56, 0.77],
+        }
+    )
+    fig = fig_complementarity_corr(frame)
+    assert fig.data
+    assert len(fig.data[0].x) == 4
+
+
 def test_fig_coverage_heatmap_a_des_traces() -> None:
     """La heatmap Q1 produit une figure Plotly non vide."""
     fig = fig_coverage_heatmap(_hour_season_frame())
