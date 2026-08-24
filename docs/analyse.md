@@ -86,13 +86,16 @@ classe à l'intérieur de la saison). **En été, ce croisement n'arrive
 jamais** : quand la charge est haute, le renouvelable ne l'est pas en
 creux.
 
-## Piste de recommandation (à chiffrer à l'étape 7)
+## Recommandation
+
+Rédaction complète : [`recommandation.md`](recommandation.md).
 
 Un décideur gagne plus à traiter le **créneau hivernal 16–19 h**
-(couverture très basse quand la charge est haute) qu'à ajouter du
-solaire pour les pics d'été, déjà bien suivis par le PV. La
-complémentarité éolien/PV existe mais reste trop faible pour effacer
-ces creux.
+(couverture **19,6 %**) qu'à ajouter du solaire pour les pics d'été
+(midi 14 h : **62,9 %** ; 3,2× plus de PV aux heures P90 de charge).
+**61 %** des quarts d'heure de stress (charge P90 et renouvelable P10)
+tombent entre 16 h et 19 h. La complémentarité PV/éolien
+(r = −0,21) ne comble pas ce trou.
 
 ## Limites
 

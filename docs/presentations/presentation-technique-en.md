@@ -9,9 +9,10 @@ paginate: true
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
 ![DuckDB](https://img.shields.io/badge/DuckDB-analytics-yellow?logo=duckdb&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white)
+![Plotly](https://img.shields.io/badge/Plotly-charts-3F4F75?logo=plotly&logoColor=white)
 ![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white)
 
-*Steps 1–5: ingest, DuckDB, four SQL questions*
+*Pipeline, dimensional SQL, Streamlit dashboard, numbered recommendation*
 
 ---
 
@@ -41,7 +42,9 @@ Assumption: never sum the Belgium grain with the Wallonia grain.
 
 ![DuckDB](https://img.shields.io/badge/DuckDB-analytics-yellow?logo=duckdb&logoColor=white) analytical SQL (`CORR`, windows), one file, no server
 
-![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white) dashboard next (Power BI optional later)
+![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white) business deliverable: one chart per question + recommendation banner
+
+![Plotly](https://img.shields.io/badge/Plotly-charts-3F4F75?logo=plotly&logoColor=white) hour × season heatmap, PV/ERA5 densities, hover
 
 ![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white) time-series cleaning (Elia 15-min, ERA5 hourly)
 
@@ -59,6 +62,16 @@ PV/wind complementarity r = **−0.21**. Stress (P90×P10): **0.7%** of quarter-
 
 ---
 
+## Numbered recommendation
+
+Winter 16–19 h slot: **19.6%** coverage. **61%** of stress quarter-hours fall there.
+
+Action: flexibility (demand, storage, imports) on that slot — not extra PV for summer peaks (already tracked).
+
+![w:1000](../../pictures/presentations/recommendation-winter.png)
+
+---
+
 ## Limitations
 
 - National load only: no “Wallonia covers its own demand”
@@ -71,7 +84,9 @@ PV/wind complementarity r = **−0.21**. Stress (P90×P10): **0.7%** of quarter-
 
 ## Code
 
+- [`webapp/app.py`](../../webapp/app.py) — Streamlit dashboard
+- [`src/renewables_wallonia/dashboard.py`](../../src/renewables_wallonia/dashboard.py) — recommendation + figures
 - [`sql/analysis/`](../../sql/analysis/) — four named questions
-- [`src/renewables_wallonia/analysis.py`](../../src/renewables_wallonia/analysis.py) — `analyze`
+- [`docs/recommandation.md`](../recommandation.md) — recommendation (French)
 - [`docs/analyse.md`](../analyse.md) — findings (French)
 - [`sql/schema.sql`](../../sql/schema.sql) — star schema + `v_belgium_qh`

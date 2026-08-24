@@ -20,5 +20,5 @@ charge) + **zoom production Wallonie** vs météo. Période : **3 ans**.
 - [x] Étape 4 — Nettoyage des séries + schéma DuckDB (faits / dimensions)
 - [x] Étape 5 — Analyse des 4 questions métier (SQL + stats)
 - [x] Étape 6 — Dashboard Streamlit
-- [ ] Étape 7 — README, recommandation, présentations portfolio
+- [x] Étape 7 — README, recommandation, présentations portfolio
 - [ ] Étape 8 *(optionnel)* — Power BI et/ou indicateur de risque réseau

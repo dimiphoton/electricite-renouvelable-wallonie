@@ -12,3 +12,4 @@
 | 2026-08-24 | Corrélation solaire « de jour » si `ssrd > 10 W/m²` | Toutes les heures | Les nuits à zéro gonfleraient r sans rien dire du gisement. |
 | 2026-08-24 | Saisonnalité par `GROUP BY` + moyenne mobile 7 jours | Décomposition STL (`statsmodels`) | Suffit pour les 4 questions ; évite une dépendance de plus avant le dashboard. |
 | 2026-08-24 | Charts **Plotly** dans Streamlit | Altair (déjà fourni par Streamlit) | Heatmap heure × saison et densités PV/ERA5 plus lisibles ; hover utile pour un dashboard métier. |
+| 2026-08-24 | Reco : flex sur **16–19 h l'hiver**, pas de PV extra pour les pics d'été | Reco « plus de solaire » ou indicateur de risque réseau | Les pics d'été sont déjà suivis par le PV (×3,2 aux heures P90). 61 % des QH de stress tombent en fin d'après-midi. Un indicateur réseau Elia n'est pas public ; les P90/P10 restent des conventions. |

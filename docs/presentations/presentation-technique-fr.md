@@ -9,9 +9,10 @@ paginate: true
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
 ![DuckDB](https://img.shields.io/badge/DuckDB-analytics-yellow?logo=duckdb&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white)
+![Plotly](https://img.shields.io/badge/Plotly-charts-3F4F75?logo=plotly&logoColor=white)
 ![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white)
 
-*Étapes 1–5 : ingestion, DuckDB, 4 questions SQL*
+*Pipeline, SQL dimensionnel, dashboard Streamlit, reco chiffrée*
 
 ---
 
@@ -41,7 +42,9 @@ Hypothèse : on ne somme jamais la maille Belgique et la maille Wallonie.
 
 ![DuckDB](https://img.shields.io/badge/DuckDB-analytics-yellow?logo=duckdb&logoColor=white) SQL analytique (`CORR`, fenêtres), un fichier, pas de serveur
 
-![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white) dashboard à venir (Power BI possible plus tard)
+![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white) livrable métier, une viz par question + bandeau de reco
+
+![Plotly](https://img.shields.io/badge/Plotly-charts-3F4F75?logo=plotly&logoColor=white) heatmap heure × saison, densités PV/ERA5, hover
 
 ![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white) nettoyage des séries (quart d'heure Elia, heure ERA5)
 
@@ -59,6 +62,16 @@ Complémentarité PV/éolien r = **−0,21**. Stress (P90×P10) : **0,7 %** des 
 
 ---
 
+## Recommandation chiffrée
+
+Créneau hivernal 16–19 h : couverture **19,6 %**. **61 %** des QH de stress y tombent.
+
+Action : flex (demande, stockage, import) sur ce créneau — pas de PV extra pour les pics d'été (déjà suivis).
+
+![w:1000](../../pictures/presentations/recommandation-hiver.png)
+
+---
+
 ## Limites
 
 - Charge nationale seulement : pas de « la Wallonie couvre sa demande »
@@ -71,7 +84,9 @@ Complémentarité PV/éolien r = **−0,21**. Stress (P90×P10) : **0,7 %** des 
 
 ## Code
 
+- [`webapp/app.py`](../../webapp/app.py) — dashboard Streamlit
+- [`src/renewables_wallonia/dashboard.py`](../../src/renewables_wallonia/dashboard.py) — reco + figures
 - [`sql/analysis/`](../../sql/analysis/) — 4 questions nommées
-- [`src/renewables_wallonia/analysis.py`](../../src/renewables_wallonia/analysis.py) — `analyze`
+- [`docs/recommandation.md`](../recommandation.md) — reco métier
 - [`docs/analyse.md`](../analyse.md) — findings
 - [`sql/schema.sql`](../../sql/schema.sql) — étoile + `v_belgium_qh`

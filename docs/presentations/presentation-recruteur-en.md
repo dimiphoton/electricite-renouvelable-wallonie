@@ -10,17 +10,18 @@ paginate: true
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
 ![DuckDB](https://img.shields.io/badge/DuckDB-analytics-yellow?logo=duckdb&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-red?logo=streamlit&logoColor=white)
+![Plotly](https://img.shields.io/badge/Plotly-charts-3F4F75?logo=plotly&logoColor=white)
 ![Pandas](https://img.shields.io/badge/Pandas-data-150458?logo=pandas&logoColor=white)
 
-*Portfolio — steps 1–5: the numbers are in*
+*API pipeline → analysis → dashboard, with a numbered recommendation*
 
 ---
 
 ## The problem
 
-Solar and wind output is weather-dependent, not steady.
+Solar and wind output follows the weather. It is not a steady baseload.
 
-A grid operator or supplier needs to know **when** that generation covers Belgian demand, and **why** it moves — especially in Wallonia.
+A grid operator or supplier needs to know **when** that generation covers Belgian demand — and **where to put the next euro of flexibility**, rather than adding solar by default.
 
 ---
 
@@ -28,14 +29,24 @@ A grid operator or supplier needs to know **when** that generation covers Belgia
 
 Official Belgian grid figures from Elia (15-minute), plus Copernicus weather. No maps: we compare time series.
 
-Load is published for **Belgium as a whole**. Wallonia is the production zoom, not a regional coverage ratio.
+Electricity use is published for **Belgium as a whole**. Wallonia is the production zoom, not a regional coverage ratio.
 
 ---
 
-## The result
+## The result (3 years)
 
-Over 3 years, solar + wind cover **27%** of Belgian load on average.
+Solar + wind cover **27%** of Belgian electricity use on average.
 
-A summer midday hour: about **63%**. A winter evening hour: about **19%**. Solar already tracks summer noon peaks. The tight hours are winter late afternoons.
+Summer midday is already well covered. The gap is **early evening in winter**.
 
-The Streamlit dashboard comes next.
+![w:1050](../../pictures/presentations/coverage-hour-season.png)
+
+---
+
+## Recommendation
+
+Put flexibility (shift demand, store, import) on the **winter 4–7 pm** slot, not extra solar panels for summer peaks.
+
+![w:1050](../../pictures/presentations/recommendation-winter.png)
+
+Dashboard: `python -m renewables_wallonia.cli dashboard`

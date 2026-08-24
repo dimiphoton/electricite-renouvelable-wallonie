@@ -1,5 +1,14 @@
 # Journal de développement
 
+## 2026-08-24 — README, recommandation, présentations
+
+- README public (EN) : quatre questions du dashboard, reco chiffrée,
+  visuels, limites, reproduction.
+- `docs/recommandation.md` : flex sur 16–19 h l'hiver (couverture
+  19,6 %, 61 % des QH de stress), pas de PV extra pour les pics d'été.
+- Quatre présentations Marp FR/EN (recruteur + technique), à jour du
+  dashboard.
+
 ## 2026-08-24 — Dashboard Streamlit
 
 - App `webapp/app.py` : une visualisation par question métier, plus

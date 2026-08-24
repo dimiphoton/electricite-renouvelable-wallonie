@@ -17,21 +17,23 @@ prochaine étape
 
 | | |
 |---|---|
-| Dernière étape close | 6 — Dashboard Streamlit |
-| **Prochaine étape** | **7 — README, recommandation, présentations portfolio** |
-| Branche | `feature/dashboard-streamlit` (à merger dans `main` sans `.cursor`) |
-| Fichiers utiles | `ROADMAP.md`, `JOURNAL.md`, `brief/objectif.md`, `docs/decisions.md`, `docs/analyse.md`, `webapp/app.py`, `src/renewables_wallonia/dashboard.py` |
+| Dernière étape close | 7 — README, recommandation, présentations portfolio |
+| **Prochaine étape** | **8 *(optionnel)* — Power BI et/ou indicateur de risque réseau** |
+| Branche | `feature/readme-presentations` (contient aussi le dashboard Streamlit non mergé ; à merger dans `main` **sans** `.cursor/`) |
+| Fichiers utiles | `ROADMAP.md`, `JOURNAL.md`, `brief/objectif.md`, `docs/decisions.md`, `docs/recommandation.md`, `README.md`, `docs/presentations/` |
 
 ### Déjà en place (ne pas refaire)
 
 - Pipeline API → DuckDB, CLI `analyze`, SQL dans `sql/analysis/`, conclusions dans `docs/analyse.md`.
 - Dashboard Streamlit (`python -m renewables_wallonia.cli dashboard`) : une viz par question + reco chiffrée (flex 16–19 h hiver).
+- README public EN, `docs/recommandation.md`, quatre sources Marp FR/EN. Les HTML dans `docs/slides/` sont régénérés par GitHub Actions au push sur `main`.
 - Pas de ML, pas de SIG, pas de Power BI.
 
-### À faire dans le prochain chat (étape 7 seulement)
+### À faire dans le prochain chat (étape 8 seulement, optionnelle)
 
-- README public (EN), recommandation rédigée, quatre présentations Marp FR/EN.
-- Ne pas enchaîner l'étape 8 (Power BI) dans le même chat.
+- **D'abord** merger `feature/readme-presentations` dans `main` sans `.cursor/` (procédure de la règle workflow), pour que le dashboard + README + slides soient sur `main`.
+- Ensuite, **seulement si l'utilisateur confirme** : Power BI et/ou un indicateur simple de risque réseau. L'étape 8 est optionnelle : si pas de feu vert, clôturer le cœur du projet.
+- Ne pas refaire le README ni les présentations.
 
 ---
 

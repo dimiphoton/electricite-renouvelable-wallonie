@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+- README (EN), recommandation métier (`docs/recommandation.md`) et
+  quatre présentations Marp FR/EN : reco flex hivernal 16–19 h vs PV
+  d'été, visuels heure × saison.
 - Dashboard Streamlit (`webapp/app.py`, CLI `dashboard`) : une
   visualisation par question métier et une recommandation chiffrée
   (flex hivernal 16–19 h vs PV d'été). Plotly, lecture des CSV
